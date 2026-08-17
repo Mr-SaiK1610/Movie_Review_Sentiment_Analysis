@@ -33,8 +33,6 @@ NEGATION_WORDS = frozenset(
 )
 STOP_WORDS = sorted(ENGLISH_STOP_WORDS.difference(NEGATION_WORDS))
 
-NEUTRAL_CONFIDENCE_THRESHOLD = 0.70
-
 COLOR_MAP = {
     "Positive": {
         "bg_soft": "rgba(63,107,102,0.10)",
@@ -79,7 +77,7 @@ def clean_text(text: str) -> str:
 
 def confidence_label(label: str, probability: float) -> str:
     if label == "Neutral":
-        return "Mixed Signals"
+        return "Neutral"
     if probability >= 0.90:
         return "Very High"
     if probability >= 0.75:
@@ -106,14 +104,15 @@ def predict():
     X = vectorizer.transform([clean_text(review_text)])
     proba = model.predict_proba(X)[0]
 
-    prob_neg = float(proba[0])
-    prob_pos = float(proba[1])
-    max_p = max(prob_pos, prob_neg)
-
-    if max_p < NEUTRAL_CONFIDENCE_THRESHOLD:
-        label = "Neutral"
+    class_probabilities = dict(zip(model.classes_, proba))
+    predicted_class = max(class_probabilities, key=class_probabilities.get)
+    max_p = float(class_probabilities[predicted_class])
+    # Supports both the new string labels and an older already-loaded binary
+    # model, which used 0 for negative and 1 for positive.
+    if isinstance(predicted_class, str):
+        label = predicted_class.title()
     else:
-        label = "Positive" if prob_pos > prob_neg else "Negative"
+        label = "Positive" if int(predicted_class) == 1 else "Negative"
 
     return render_template(
         "result.html",

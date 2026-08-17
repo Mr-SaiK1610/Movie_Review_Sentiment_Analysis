@@ -8,6 +8,7 @@ from sklearn.linear_model import LogisticRegression
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(BASE_DIR, "IMDB Dataset.csv")
+NEUTRAL_DATA_PATH = os.path.join(BASE_DIR, "neutral_reviews.csv")
 VECTORIZER_PATH = os.path.join(BASE_DIR, "tfidf_vectorizer.joblib")
 MODEL_PATH = os.path.join(BASE_DIR, "logistic_regression_model.joblib")
 
@@ -45,9 +46,11 @@ def clean_text(text: str) -> str:
 def main():
     print("Loading dataset...")
 
-    df = pd.read_csv(DATA_PATH)
+    imdb_df = pd.read_csv(DATA_PATH)[["review", "sentiment"]]
+    neutral_df = pd.read_csv(NEUTRAL_DATA_PATH)[["review", "sentiment"]]
+    df = pd.concat([imdb_df, neutral_df], ignore_index=True)
     reviews = df["review"].apply(clean_text)
-    labels = (df["sentiment"] == "positive").astype(int)
+    labels = df["sentiment"].str.lower()
 
     print("Training TF-IDF vectorizer...")
 
@@ -63,7 +66,9 @@ def main():
 
     print("Training Logistic Regression model...")
 
-    model = LogisticRegression(max_iter=1000)
+    # Neutral examples are fewer than IMDB positive/negative reviews, so
+    # balance their training influence without changing their labels.
+    model = LogisticRegression(max_iter=1000, class_weight="balanced")
     model.fit(X, labels)
 
     joblib.dump(vectorizer, VECTORIZER_PATH)
