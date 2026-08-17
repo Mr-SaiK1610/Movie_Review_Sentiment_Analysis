@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis History — ReelTalk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=9">
+</head>
+<body class="result-body">
+    <div class="page-wrapper">
+        <header class="result-header">
+            <a href="{{ url_for('index') }}" class="back-link">← Analyze a New Review</a>
+            <h1 class="result-title">Analysis History</h1>
+            <p class="result-subtitle">Your most recent movie-review sentiment analyses</p>
+        </header>
+
+        <main class="result-container">
+            <section class="history-overview">
+                <article><span>Positive</span><strong>{{ overview['Positive'] }}</strong></article>
+                <article><span>Neutral</span><strong>{{ overview['Neutral'] }}</strong></article>
+                <article><span>Negative</span><strong>{{ overview['Negative'] }}</strong></article>
+            </section>
+            {% if analyses %}
+            <section class="history-list">
+                {% for analysis in analyses %}
+                <article class="history-card frame-corners">
+                    <div class="history-card-top">
+                        <span class="history-label" style="color: {{ colors[analysis['label']].text }};">{{ analysis['label'] }}</span>
+                        <span>{{ analysis['confidence_pct'] }}% · {{ analysis['created_at'] }}</span>
+                    </div>
+                    <p>{{ analysis['review_text'] }}</p>
+                    <a href="{{ url_for('suggestions', analysis_id=analysis['id']) }}" class="btn btn-outline">View Suggestions</a>
+                </article>
+                {% endfor %}
+            </section>
+            {% else %}
+            <section class="empty-history frame-corners">
+                <h2>No analyses yet</h2>
+                <p>Analyze your first movie review, and it will appear here.</p>
+                <a href="{{ url_for('index') }}" class="btn btn-maroon">Analyze a Review</a>
+            </section>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>

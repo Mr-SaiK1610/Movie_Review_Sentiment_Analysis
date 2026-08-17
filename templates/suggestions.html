@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Suggestions — ReelTalk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=9">
+</head>
+<body class="result-body">
+    <div class="page-wrapper">
+        <header class="result-header">
+            <a href="{{ url_for('history') }}" class="back-link">← View Analysis History</a>
+            <h1 class="result-title">Review Insights</h1>
+            <p class="result-subtitle">Suggestions based on your {{ analysis['label'].lower() }} movie review</p>
+        </header>
+
+        <main class="result-container">
+            <section class="verdict-card" style="background: {{ colors.bg_soft }}; border-color: {{ colors.border }};">
+                <div class="verdict-label" style="color: {{ colors.text }};">ANALYSIS RESULT</div>
+                <div class="verdict-value" style="color: {{ colors.text }};">{{ analysis['label'] | upper }}</div>
+                <p class="suggestion-date">{{ analysis['confidence_pct'] }}% confidence</p>
+            </section>
+
+            <section class="insights-card frame-corners">
+                <span class="eyebrow">Smart Suggestions</span>
+                <h2>{{ heading }}</h2>
+                <p class="review-content">“{{ analysis['review_text'] }}”</p>
+                <ol class="suggestion-list">
+                    {% for suggestion in suggestions %}
+                    <li>{{ suggestion }}</li>
+                    {% endfor %}
+                </ol>
+            </section>
+
+            <div class="actions-row">
+                <a href="{{ url_for('history') }}" class="btn btn-outline btn-wide">View History</a>
+                <a href="{{ url_for('index') }}" class="btn btn-maroon btn-wide">Analyze Another Review</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

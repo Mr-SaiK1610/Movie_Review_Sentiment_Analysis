@@ -1,286 +1,149 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Marquee — Movie Review Sentiment Analysis</title>
-
+    <title>ReelTalk — Movie Review Studio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=8">
 </head>
+<body class="dashboard-body">
+    <aside class="app-sidebar">
+        <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark">M</span><span>Movie Review</span></a>
+        <p class="sidebar-label">Your movie desk</p>
+        <nav class="side-nav" aria-label="Main navigation">
+            <a class="active" href="#overview">Overview</a>
+            <a href="#analyze">Analyze review</a>
+            <a href="{{ url_for('history') }}">History</a>
+            <a href="{{ url_for('analytics') }}">Sentiment analytics</a>
+            <a href="{{ url_for('booking') }}">Book tickets</a>
+        </nav>
+        <p class="sidebar-label">Explore</p>
+        <nav class="side-nav secondary-nav">
+            <a href="#watchlist">Watchlist</a>
+            <a href="#discover">Discover</a>
+            <a href="#how-it-works">How it works</a>
+        </nav>
+        <div class="sidebar-note">Analysis engine is ready</div>
+    </aside>
 
-<body class="home-body">
+    <main class="dashboard-main">
+        <header class="topbar">
+            <div><p class="topbar-kicker">A THOUGHT FOR THE SCREEN</p><p class="topbar-title">“Every great film leaves you seeing the world a little differently.”</p></div>
+        </header>
 
-    <div class="container">
-
-        <div class="hero-heading">
-            <span class="eyebrow">Now Showing</span>
-            <h1>Movie Review <span>Sentiment Analysis</span></h1>
-            <p class="lede">
-                Write a movie review and let a
-                <strong>TF-IDF + Logistic Regression</strong>
-                engine tell you whether it reads as a rave, a mixed take,
-                or a pan — in seconds.
-            </p>
-        </div>
-
-        <section class="filmstrip">
-            <div class="filmstrip-rail" aria-hidden="true"></div>
-
-            <div class="filmstrip-row">
-                <div class="still">
-                    <figure>
-                        <img src="{{ url_for('static', filename='images/still-ensemble.jpg') }}"
-                            alt="A colourful illustrated ensemble of Bollywood characters against a retro sunburst background">
-                    </figure>
-                    <figcaption>The Ensemble<span class="still-sub">Every character, one frame</span></figcaption>
-                </div>
-
-                <div class="still">
-                    <figure>
-                        <img src="{{ url_for('static', filename='images/still-score.jpg') }}"
-                            alt="Two silhouetted musicians playing a veena beneath a Starry Night sky">
-                    </figure>
-                    <figcaption>The Score<span class="still-sub">Where the mood is set</span></figcaption>
-                </div>
-
-                <div class="still">
-                    <figure>
-                        <img src="{{ url_for('static', filename='images/still-mood.jpg') }}"
-                            alt="A cinematic still of a man lighting a cigarette at dusk by a harbour">
-                    </figure>
-                    <figcaption>The Mood<span class="still-sub">One still, a whole story</span></figcaption>
-                </div>
+        <section class="welcome-panel" id="overview">
+            <div class="welcome-copy">
+                <p class="section-kicker">REELTALK PRESENTS</p>
+                <h1>Movie Review <em>Sentiment Analysis</em></h1>
+                <p class="hero-subheading">A clearer way to understand every reaction.</p>
+                <p>Write a review, discover its sentiment, and get useful perspective on what made the movie work — or not work — for you.</p>
+                <a class="primary-action" href="#analyze">Analyze a review <span>→</span></a>
+            </div>
+            <div class="hero-detail">
+                <img src="{{ url_for('static', filename='images/saiku.jpg') }}" alt="A dramatic movie studio illustration with cameras, lights, and film reels">
             </div>
         </section>
 
-        <section class="hero">
-            <div class="hero-copy">
-                <span class="eyebrow">Why it matters</span>
-
-                <h2 class="hero-copy-heading">Every review<br>has a <span>verdict</span>.</h2>
-
-                <p class="lede">
-                    From a colourful ensemble cast to a single quiet frame —
-                    every review carries a tone. Marquee reads it for you.
-                </p>
-
-                <div class="verdict-chips">
-                    <span class="verdict-chip positive">Positive</span>
-                    <span class="verdict-chip neutral">Neutral</span>
-                    <span class="verdict-chip negative">Negative</span>
-                </div>
-            </div>
-
-            <div class="hero-visual">
-                <div class="poster-frame">
-                    <span class="tag">A Wall of Reviews</span>
-                    <img src="{{ url_for('static', filename='images/poster-grid.jpg') }}"
-                        alt="A collage grid of classic Bollywood movie posters">
-                </div>
-            </div>
+        <section class="quick-grid" aria-label="Project features">
+            <article><div><strong>Instant verdict</strong><p>Positive, neutral, or negative.</p></div></article>
+            <article><div><strong>Review insights</strong><p>Helpful next steps after analysis.</p></div></article>
+            <article><div><strong>Saved history</strong><p>Pick up where you left off.</p></div></article>
         </section>
 
-        <main class="input-card frame-corners">
-            <div class="card-header">
-                <h2>Write the review</h2>
-                <p>Paste or type it below — the curtain's already up.</p>
-            </div>
-
-            {% if error %}
-            <div class="error-message">
-                ⚠️
-                <span>{{ error }}</span>
-            </div>
-            {% endif %}
-
-            <form action="{{ url_for('predict') }}" method="POST" id="reviewForm">
-                <div class="textarea-container">
-                    <textarea
-                        name="review_text"
-                        id="review_text"
-                        placeholder="Write your movie review here...
-
-Example:
-The movie was absolutely fantastic! The acting was brilliant, the story was engaging, and the cinematography was beautiful."
-                        maxlength="5000"
-                        required
-                    >{% if previous_text %}{{ previous_text }}{% endif %}</textarea>
-
-                    <div class="textarea-footer">
-                        <span id="charCount">0 / 5000 characters</span>
-                    </div>
-                </div>
-
-                <div class="button-group">
-                    <button type="submit" class="analyze-button btn btn-maroon">
-                        <span>Analyze Sentiment</span>
-                        <span class="arrow">→</span>
-                    </button>
-
-                    <button type="button" class="clear-button btn btn-outline" id="clearButton">
-                        Clear
-                    </button>
-                </div>
-            </form>
-
-            <div class="examples">
-                <div class="examples-title">Try a screening</div>
-
-                <div class="example-buttons">
-                    <button type="button" onclick="setRandomReview('positive')">
-                        Positive Example
-                    </button>
-
-                    <button type="button" onclick="setRandomReview('neutral')">
-                        Neutral Example
-                    </button>
-
-                    <button type="button" onclick="setRandomReview('negative')">
-                        Negative Example
-                    </button>
-                </div>
-            </div>
-        </main>
-
-        <section class="lobby-band">
-            <img class="bg-img" src="{{ url_for('static', filename='images/poster-wall.jpg') }}"
-                alt="A wall covered in illustrated movie posters">
-            <div class="overlay"></div>
-
-            <div class="content">
-                <span class="eyebrow">How it works</span>
-                <h2>Reads every review like a script, line by line.</h2>
-                <p>
-                    Your text is cleaned and converted into TF-IDF features,
-                    then classified by a Logistic Regression model trained on
-                    positive, negative, and neutral movie statements. It reports
-                    the strongest of those three learned sentiment categories.
-                </p>
-            </div>
+        <section class="home-gallery" aria-label="A few frames from cinema">
+            <div class="gallery-heading"><p class="section-kicker">A FEW FRAMES FROM CINEMA</p><h2>Stories live in the details.</h2></div>
+            <figure><img src="{{ url_for('static', filename='images/still-score.jpg') }}" alt="Musicians playing beneath a night sky"><figcaption>The score</figcaption></figure>
+            <figure><img src="{{ url_for('static', filename='images/still-mood.jpg') }}" alt="Cinematic harbour scene at dusk"><figcaption>The mood</figcaption></figure>
+            <figure><img src="{{ url_for('static', filename='images/still-ensemble.jpg') }}" alt="Illustrated ensemble of Bollywood characters"><figcaption>The ensemble</figcaption></figure>
         </section>
 
-        <section class="features">
-            <div class="feature-card">
-                <div class="feature-icon">🤖</div>
-                <h3>Machine Learning</h3>
-                <p>TF-IDF features feeding a Logistic Regression classifier trained on positive, negative, and neutral movie reviews.</p>
-            </div>
+        <section class="workspace-grid">
+            <section class="analysis-panel" id="analyze">
+                <div class="panel-heading"><div><p class="section-kicker">ANALYZE REVIEW</p><h2>What did you think?</h2></div><span class="step-count">01 / 01</span></div>
+                <p class="panel-intro">Write naturally. A sentence is enough, but more detail gives the model more context.</p>
+                {% if error %}<div class="dashboard-error">{{ error }}</div>{% endif %}
+                <form action="{{ url_for('predict') }}" method="POST" id="reviewForm">
+                    <textarea name="review_text" id="review_text" maxlength="5000" required placeholder="Example: The performances were wonderful, but the second half felt too long.">{% if previous_text %}{{ previous_text }}{% endif %}</textarea>
+                    <div class="review-form-bottom"><span id="charCount">0 / 5000</span><div><button class="text-button" type="button" id="clearButton">Clear</button><button class="primary-action" type="submit">Analyze review <span>→</span></button></div></div>
+                </form>
+                <div class="sample-row"><span>Try one:</span><button type="button" data-review="positive">Loved it</button><button type="button" data-review="neutral">Mixed feelings</button><button type="button" data-review="negative">Not for me</button></div>
+            </section>
 
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <h3>Confidence Scores</h3>
-                <p>View the confidence of Positive, Negative, or Neutral predictions for every review.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">⚡</div>
-                <h3>Fast Analysis</h3>
-                <p>Get your sentiment result instantly through the Flask web application.</p>
-            </div>
+            <aside class="now-showing" id="discover">
+                <div><p class="section-kicker">NOW SHOWING</p><h2>Your next good watch is out there.</h2><p>Browse current films and reserve a seat when you find one.</p><a href="{{ url_for('booking') }}">Book tickets</a></div>
+            </aside>
         </section>
-    </div>
 
-    <div class="film-divider" aria-hidden="true"></div>
-
-    <footer class="site-footer">
-        <p>MARQUEE &nbsp;•&nbsp; TF-IDF + Logistic Regression</p>
-    </footer>
-
+        <section class="lower-grid">
+            <article class="watchlist-card" id="watchlist"><p class="section-kicker">YOUR WATCHLIST</p><h2>Keep a little room for great cinema.</h2><p>Save the films you want to revisit, recommend, or watch next.</p><button type="button" class="text-button">Create a watchlist</button></article>
+            <article class="method-card" id="how-it-works"><p class="section-kicker">BEHIND THE SCENES</p><h2>Simple, considered analysis.</h2><p>Your review is processed by a TF-IDF + Logistic Regression model trained to recognize positive, neutral, and negative movie opinions.</p></article>
+        </section>
+        <footer class="dashboard-footer">MOVIE REVIEW SENTIMENT ANALYSIS · A THOUGHTFUL MOVIE REVIEW SPACE</footer>
+    </main>
     <script>
-        const textarea = document.getElementById("review_text");
-        const charCount = document.getElementById("charCount");
-        const clearButton = document.getElementById("clearButton");
-
-        // All 15 examples in each category were verified against the
-        // current three-class model.
-        const exampleReviews = {
+        const textarea = document.getElementById('review_text');
+        const counter = document.getElementById('charCount');
+        const examples = {
             positive: [
-                "This movie was absolutely fantastic! The acting was brilliant and the story was amazing.",
-                "One of the best films I have seen this year, an absolute masterpiece from start to finish.",
-                "The performances were outstanding and the direction was flawless throughout.",
-                "A beautifully crafted film with a gripping story and stunning cinematography.",
-                "Brilliant writing, incredible acting, and a soundtrack that perfectly matched every scene.",
-                "This film exceeded all my expectations, truly a must-watch for everyone.",
-                "An emotional rollercoaster that had me hooked the entire time, wonderful movie.",
-                "The chemistry between the leads was electric and the plot kept me on the edge of my seat.",
-                "A visually stunning masterpiece with a powerful story and unforgettable characters.",
-                "Every scene felt purposeful, the pacing was perfect and the ending was deeply satisfying.",
-                "I laughed, I cried, and I left the theater completely amazed by this incredible film.",
-                "The director did an outstanding job bringing this story to life, highly recommended.",
-                "A near-perfect film with brilliant performances and a truly original story.",
-                "This is easily one of the greatest movies ever made, absolutely loved every minute.",
-                "A wonderfully told story with heart, humor, and genuinely great performances."
+                'The movie was fantastic. The acting was brilliant and the story stayed with me.',
+                'A beautifully made film with a touching story and excellent performances.',
+                'I loved every minute of this movie; it was funny, emotional, and memorable.',
+                'The direction was confident and the cinematography was stunning throughout.',
+                'The lead actors had wonderful chemistry and made every scene believable.',
+                'An engaging story with a satisfying ending. I would happily watch it again.',
+                'This was one of the best films I have seen this year.',
+                'The soundtrack, performances, and writing worked together perfectly.',
+                'A thoughtful and entertaining movie with characters I genuinely cared about.',
+                'The film exceeded my expectations and kept me interested from start to finish.',
+                'The emotional scenes were powerful without ever feeling forced.',
+                'A refreshing story with strong performances and beautiful visuals.',
+                'Every scene felt purposeful and the pacing was just right.',
+                'This movie had heart, humour, and a very memorable final act.',
+                'A wonderful watch that I would recommend to friends and family.'
             ],
-
-            negative: [
-                "The movie was terrible. The story was boring and the acting was extremely disappointing.",
-                "A complete waste of time, the plot made no sense and the acting was wooden.",
-                "I regret watching this film, it was slow, boring, and utterly forgettable.",
-                "The dialogue was cringeworthy and the pacing dragged on forever.",
-                "One of the worst movies I have ever seen, poorly written and badly acted.",
-                "The special effects looked cheap and the story was painfully predictable.",
-                "I could not connect with any of the characters, the whole film fell flat.",
-                "The plot was full of holes and the ending made absolutely no sense.",
-                "A disappointing mess with a weak script and unconvincing performances.",
-                "This film was a chore to sit through, dull from beginning to end.",
-                "The acting was wooden, the writing was lazy, and the direction was uninspired.",
-                "I wanted to walk out halfway through, it was that bad.",
-                "A poorly executed film with no real emotional depth or coherent story.",
-                "The humor fell flat and the drama felt forced throughout the entire movie.",
-                "This was an incredibly frustrating watch, badly paced and poorly directed."
-            ],
-
             neutral: [
-                "The movie was released in 2024.",
-                "This film runs for approximately two hours.",
-                "The story follows a family during a summer vacation.",
-                "The movie is available with subtitles.",
-                "The main character travels to a new city.",
-                "The movie was neither great nor terrible.",
-                "The film was okay overall.",
-                "It was an average movie for me.",
-                "Some parts worked and some parts did not.",
-                "The acting was fine, but the story was ordinary.",
-                "The film was watchable but not memorable.",
-                "The movie was not bad, but it was not special.",
-                "There were good scenes and weak scenes.",
-                "I do not have a strong opinion about this film.",
-                "The film had a balanced mix of strengths and weaknesses."
+                'The movie had some good scenes, but the story was fairly ordinary overall.',
+                'The film was okay; some moments worked while others felt slow.',
+                'The acting was fine, but the plot did not leave a strong impression.',
+                'It was a watchable movie, though not especially memorable.',
+                'The first half was interesting, but the second half lost focus.',
+                'The movie was neither great nor bad; it was simply average for me.',
+                'There were a few good performances, but the script needed more depth.',
+                'I enjoyed parts of it, although the pacing could have been better.',
+                'The film had a familiar story and delivered exactly what I expected.',
+                'Some scenes were effective, but others felt unnecessary.',
+                'The visuals were good, while the dialogue was a little ordinary.',
+                'It is an easy watch, but I am not sure I would watch it again.',
+                'The movie had strengths and weaknesses in almost equal measure.',
+                'The concept was interesting, but the execution was inconsistent.',
+                'I do not have a strong opinion about the film after watching it.'
+            ],
+            negative: [
+                'The film was disappointing. The pacing was slow and the characters felt unfinished.',
+                'The story was predictable and the acting did not feel convincing.',
+                'I found the movie boring and much longer than it needed to be.',
+                'The dialogue was weak and several scenes felt unnecessary.',
+                'A disappointing watch with a confusing plot and little emotional impact.',
+                'The performances were flat and the direction lacked energy.',
+                'The movie started well but quickly became repetitive and dull.',
+                'The script had too many plot holes for me to enjoy the story.',
+                'The humour did not work, and the drama felt forced.',
+                'I could not connect with any of the characters in this film.',
+                'The visuals looked good, but the story was not engaging at all.',
+                'The ending was rushed and did not resolve the main story properly.',
+                'This was a frustrating movie with poor pacing and weak writing.',
+                'The film had potential, but the execution was disappointing.',
+                'I would not recommend this movie because it felt unfinished and forgettable.'
             ]
         };
-
-        function updateCharacterCount() {
-            charCount.textContent = textarea.value.length + " / 5000 characters";
-        }
-
-        textarea.addEventListener("input", updateCharacterCount);
-
-        clearButton.addEventListener("click", function () {
-            textarea.value = "";
-            updateCharacterCount();
-            textarea.focus();
-        });
-
-        function setReview(text) {
-            textarea.value = text;
-            updateCharacterCount();
-            textarea.focus();
-        }
-
-        function setRandomReview(category) {
-            const list = exampleReviews[category];
-            const pick = list[Math.floor(Math.random() * list.length)];
-            setReview(pick);
-        }
-
-        updateCharacterCount();
+        function updateCount(){ counter.textContent = `${textarea.value.length} / 5000`; }
+        textarea.addEventListener('input', updateCount);
+        document.getElementById('clearButton').addEventListener('click', () => { textarea.value = ''; updateCount(); textarea.focus(); });
+        document.querySelectorAll('[data-review]').forEach(button => button.addEventListener('click', () => { const choices = examples[button.dataset.review]; textarea.value = choices[Math.floor(Math.random() * choices.length)]; updateCount(); textarea.focus(); }));
+        updateCount();
     </script>
-
 </body>
 </html>

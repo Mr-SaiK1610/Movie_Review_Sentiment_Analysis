@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analytics — Movie Review</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=10">
+</head>
+<body class="result-body">
+    <div class="page-wrapper analytics-page">
+        <header class="result-header">
+            <a href="{{ url_for('index') }}" class="back-link">Back to home</a>
+            <h1 class="result-title">Sentiment Analytics</h1>
+            <p class="result-subtitle">A visual view of your saved movie-review analyses.</p>
+        </header>
+
+        {% if total %}
+        <main class="result-container">
+            <section class="analytics-stats">
+                <article><span>Total analyses</span><strong>{{ total }}</strong></article>
+                <article><span>Average confidence</span><strong>{{ average_confidence }}%</strong></article>
+                <article><span>Most common result</span><strong>{{ counts | dictsort(by='value', reverse=true) | first | first }}</strong></article>
+            </section>
+
+            <section class="analytics-grid">
+                <article class="analytics-card sentiment-chart-card">
+                    <div><p class="section-kicker">SENTIMENT SPLIT</p><h2>Your review balance</h2></div>
+                    <div class="pie-wrap">
+                        <div class="sentiment-pie" style="background: conic-gradient(#4f8177 0 {{ percentages['Positive'] }}%, #d3a34c {{ percentages['Positive'] }}% {{ percentages['Positive'] + percentages['Neutral'] }}%, #b85a4a {{ percentages['Positive'] + percentages['Neutral'] }}% 100%);"><span>{{ total }}<small>reviews</small></span></div>
+                        <div class="pie-legend">
+                            <p><i class="positive-dot"></i>Positive <strong>{{ percentages['Positive'] }}%</strong></p>
+                            <p><i class="neutral-dot"></i>Neutral <strong>{{ percentages['Neutral'] }}%</strong></p>
+                            <p><i class="negative-dot"></i>Negative <strong>{{ percentages['Negative'] }}%</strong></p>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="analytics-card theme-chart-card">
+                    <div><p class="section-kicker">TOP REVIEW THEMES</p><h2>What viewers talk about</h2></div>
+                    <div class="theme-bars">
+                        {% for theme, count in top_themes %}
+                        <div class="theme-bar-row"><span>{{ theme }}</span><div><i style="width: {{ (count / max_theme_count * 100) | round(0) }}%"></i></div><strong>{{ count }}</strong></div>
+                        {% endfor %}
+                    </div>
+                </article>
+            </section>
+        </main>
+        {% else %}
+        <main class="empty-analytics">
+            <p class="section-kicker">NO DATA YET</p>
+            <h2>Your analytics will appear here.</h2>
+            <p>Analyze a few movie reviews to see sentiment charts, confidence, and review themes.</p>
+            <a href="{{ url_for('index') }}#analyze" class="primary-action">Analyze a review <span>→</span></a>
+        </main>
+        {% endif %}
+    </div>
+</body>
+</html>

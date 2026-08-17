@@ -1,0 +1,61 @@
+review,sentiment
+"The movie was not excellent and the story was boring.",negative
+"This isn't a good film because the acting feels weak.",negative
+"I wasn't impressed by the slow pacing.",negative
+"The movie isn't enjoyable and the ending makes no sense.",negative
+"It wasn't amazing; most scenes felt unnecessary.",negative
+"The acting wasn't convincing and I didn't care about the characters.",negative
+"This isn't a memorable movie at all.",negative
+"I don't recommend it because the plot is confusing.",negative
+"The film was never exciting, even during the final scenes.",negative
+"It is hardly a great movie; it feels unfinished.",negative
+"The movie wasn't funny, and the jokes fell flat.",negative
+"I can't say the story was engaging or original.",negative
+"The visual effects weren't believable.",negative
+"This isn't worth the time it takes to watch.",negative
+"The dialogue wasn't natural and the pacing was poor.",negative
+"I never felt connected to the characters.",negative
+"The movie was not good, not exciting, and not memorable.",negative
+"The film doesn't deliver on its interesting idea.",negative
+"It wasn't a satisfying ending for this story.",negative
+"The music wasn't enough to save this disappointing movie.",negative
+"The movie was excellent and the performances were wonderful.",positive
+"This is a good film with an engaging story.",positive
+"I was impressed by the confident direction and strong acting.",positive
+"The movie is enjoyable, funny, and emotionally satisfying.",positive
+"It was amazing; every scene felt necessary.",positive
+"The acting was convincing and I cared about the characters.",positive
+"This is a memorable movie that stayed with me.",positive
+"I recommend it because the plot is clear and engaging.",positive
+"The film was exciting from the opening scene to the ending.",positive
+"It is a great movie with a complete and satisfying story.",positive
+"The movie was funny, and the jokes worked well.",positive
+"I can say the story was engaging and original.",positive
+"The visual effects were believable and beautiful.",positive
+"This is worth the time it takes to watch.",positive
+"The dialogue was natural and the pacing was strong.",positive
+"I felt connected to the characters throughout the movie.",positive
+"The movie was good, exciting, and memorable.",positive
+"The film delivers on its interesting idea.",positive
+"It was a satisfying ending for this story.",positive
+"The music made this wonderful movie even better.",positive
+"The movie wasn't bad, although it was not especially memorable.",neutral
+"It isn't terrible, but it isn't great either.",neutral
+"I didn't love the film, but I didn't hate it.",neutral
+"The acting wasn't bad, but the story was ordinary.",neutral
+"The movie is not perfect, yet it is watchable.",neutral
+"I can't decide whether I would recommend this film.",neutral
+"The plot wasn't exciting, but it was easy to follow.",neutral
+"The movie didn't stand out, though some scenes were good.",neutral
+"It wasn't memorable, but it passed the time.",neutral
+"The film isn't for everyone, but it has a few nice moments.",neutral
+"I was neither impressed nor disappointed by the movie.",neutral
+"The movie wasn't boring, but it wasn't engaging either.",neutral
+"The ending wasn't bad, just predictable.",neutral
+"I don't have a strong opinion about this film.",neutral
+"The visuals were good, but the characters were not developed enough.",neutral
+"It wasn't a waste of time, but I would not watch it again.",neutral
+"The movie had good and bad moments in equal measure.",neutral
+"The story isn't new, but it is presented clearly.",neutral
+"I wasn't excited by it, although I did not dislike it.",neutral
+"The film was okay overall, not great and not terrible.",neutral

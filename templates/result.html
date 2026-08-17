@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analysis Result — Marquee</title>
+    <title>Analysis Result — ReelTalk</title>
  
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Poppins:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
         rel="stylesheet"
     >
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=6">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=9">
 </head>
  
 <body class="result-body">
@@ -20,7 +20,7 @@
     <!-- ====================================================== -->
     <!-- HEADER -->
     <!-- ====================================================== -->
-    <header class="result-header">
+    <header class="result-header result-main-header">
         <a href="{{ url_for('index') }}" class="back-link">
             ← Analyze Another Review
         </a>
@@ -52,7 +52,19 @@
                 <span>TF-IDF + Logistic Regression</span>
             </div>
         </section>
- 
+
+        <section class="review-themes">
+            <div>
+                <span class="theme-label">REVIEW THEMES</span>
+                <p>Topics mentioned in your review</p>
+            </div>
+            <div class="theme-chips">
+                {% for theme in review_themes %}
+                <span>{{ theme }}</span>
+                {% endfor %}
+            </div>
+        </section>
+
         <!-- ================================================== -->
         <!-- VERDICT -->
         <!-- ================================================== -->
@@ -96,31 +108,15 @@
                     {% endif %}
                 </div>
             </div>
- 
-        </section>
- 
-        <!-- ================================================== -->
-        <!-- BOOKING CTA -->
-        <!-- ================================================== -->
-        <section class="booking-cta">
-            <p class="booking-cta-copy">
-                {% if label == "Positive" %}
-                    Loved it that much? Grab tickets for your next watch.
-                {% elif label == "Negative" %}
-                    Didn't land for you? Pick a better watch for next time.
-                {% else %}
-                    Torn on this one? See what else is playing right now.
-                {% endif %}
-            </p>
- 
-            <a
-                href="https://www.district.in/movies/"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn btn-gold"
-            >
-                🎬 Book Tickets on District
-            </a>
+
+            <div class="result-suggestions-link">
+                <div>
+                    <span>AI SUGGESTIONS</span>
+                    <p>Get suggestions tailored to this specific review.</p>
+                </div>
+                <a href="{{ url_for('suggestions', analysis_id=analysis_id) }}" class="btn btn-maroon">View suggestions</a>
+            </div>
+
         </section>
  
         <!-- ================================================== -->
@@ -158,8 +154,8 @@
  
             <div class="report-visual">
                 <img
-                    src="{{ url_for('static', filename='images/ticket-admit-one.jpg') }}"
-                    alt="An illustrated admit-one movie ticket beside a thoughts box"
+                    src="{{ url_for('static', filename='images/saik.jpg') }}"
+                    alt="Illustration of movie-making equipment, popcorn, and a film reel"
                 >
             </div>
  
@@ -203,4 +199,3 @@
 </div>
 </body>
 </html>
- 

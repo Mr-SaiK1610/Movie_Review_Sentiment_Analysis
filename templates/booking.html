@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Tickets — ReelTalk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=9">
+</head>
+<body class="result-body">
+    <div class="page-wrapper booking-page">
+        <header class="result-header">
+            <a href="{{ url_for('index') }}" class="back-link">Back to home</a>
+            <h1 class="result-title">Find your next show.</h1>
+            <p class="result-subtitle">Choose a city and continue to a trusted ticket partner.</p>
+        </header>
+        <main class="result-container">
+            <section class="booking-hero">
+                <img src="{{ url_for('static', filename='images/ticket-admit-one.jpg') }}" alt="Illustrated movie ticket">
+                <div>
+                    <p class="section-kicker">TICKETS</p>
+                    <h2>A good seat is only a few clicks away.</h2>
+                    <p>ReelTalk helps you decide what to watch. Ticket availability and payments are handled securely by our booking partner.</p>
+                    <a href="https://www.district.in/movies/" target="_blank" rel="noopener noreferrer" class="primary-action">Continue to ticket booking <span>→</span></a>
+                </div>
+            </section>
+            <section class="booking-note">
+                <h2>Before you go</h2>
+                <p>Check showtimes, language, screen format, and theatre location before completing your booking.</p>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

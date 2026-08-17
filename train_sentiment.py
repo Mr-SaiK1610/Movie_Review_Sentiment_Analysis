@@ -9,6 +9,7 @@ from sklearn.linear_model import LogisticRegression
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(BASE_DIR, "IMDB Dataset.csv")
 NEUTRAL_DATA_PATH = os.path.join(BASE_DIR, "neutral_reviews.csv")
+NEGATION_DATA_PATH = os.path.join(BASE_DIR, "negation_examples.csv")
 VECTORIZER_PATH = os.path.join(BASE_DIR, "tfidf_vectorizer.joblib")
 MODEL_PATH = os.path.join(BASE_DIR, "logistic_regression_model.joblib")
 
@@ -48,7 +49,11 @@ def main():
 
     imdb_df = pd.read_csv(DATA_PATH)[["review", "sentiment"]]
     neutral_df = pd.read_csv(NEUTRAL_DATA_PATH)[["review", "sentiment"]]
-    df = pd.concat([imdb_df, neutral_df], ignore_index=True)
+    negation_df = pd.read_csv(NEGATION_DATA_PATH)[["review", "sentiment"]]
+    # These short phrases are rare in the larger dataset, so repeat them to
+    # make their negation patterns meaningful during model fitting.
+    negation_df = pd.concat([negation_df] * 100, ignore_index=True)
+    df = pd.concat([imdb_df, neutral_df, negation_df], ignore_index=True)
     reviews = df["review"].apply(clean_text)
     labels = df["sentiment"].str.lower()
 
