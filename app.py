@@ -350,67 +350,57 @@ def save_analysis(review_text, label, confidence_pct):
 # ============================================================
 
 def build_suggestions(label, review_text):
-    """Create useful, sentiment-aware review insights."""
+    """Create review improvements grounded in the project's sentiment vocabulary and themes."""
     review = review_text.lower()
+    review_tokens = set(re.findall(r"[a-z]+", review))
 
     if label == "Positive":
-
+        heading = "Turn your positive reaction into a useful recommendation"
         suggestions = [
-            "Highlight the strongest part of the film when sharing this review with others.",
-            "Recommend it to viewers who enjoy this genre, cast, or style of storytelling.",
-            "Add one memorable scene or performance to make your recommendation more useful.",
+            "Keep the praise specific by naming the strongest scene, performance, or emotional moment that worked best.",
+            "Recommend the film to viewers who would enjoy its genre, cast, or storytelling style using the same positive cues from the review.",
+            "Add one memorable detail from the film so the recommendation feels personal and trustworthy.",
         ]
 
-        heading = "Turn your positive reaction into a useful recommendation"
+        if review_tokens & {"acting", "performance", "actor", "cast"}:
+            suggestions[0] = "Highlight the acting or performance that stood out most and explain why it made the movie memorable."
+        elif review_tokens & {"story", "plot", "script", "dialogue"}:
+            suggestions[0] = "Point to the story or script element that gave the film its emotional strength and explain what made it work."
+        elif review_tokens & {"music", "cinematography", "direction", "visuals"}:
+            suggestions[0] = "Mention the visual or musical choices that elevated the film and made the experience more immersive."
 
     elif label == "Negative":
-
+        heading = "Shape your criticism into constructive feedback"
         suggestions = [
-            "State the main issue clearly so filmmakers or viewers can understand the criticism.",
-            "Balance criticism with one specific example from the film for a stronger review.",
-            "Suggest the kind of viewer who may still enjoy the movie despite these concerns.",
+            "State the main issue clearly so the review explains exactly what failed to land with you.",
+            "Pair the criticism with one concrete example, such as pacing, acting, or story, to make the review more helpful.",
+            "Suggest the type of viewer who may still enjoy the movie despite the concerns you raised.",
         ]
 
-        heading = "Shape your criticism into constructive feedback"
-
-        if any(
-            word in review
-            for word in ("slow", "boring", "pacing", "drag")
-        ):
-            suggestions[0] = (
-                "Consider tighter pacing: remove slow scenes and make each sequence "
-                "move the story forward."
-            )
-
-        elif any(
-            word in review
-            for word in ("acting", "performance", "actor")
-        ):
-            suggestions[0] = (
-                "Strengthen character direction and performances so the emotional "
-                "moments feel believable."
-            )
-
-        elif any(
-            word in review
-            for word in ("story", "plot", "script", "dialogue")
-        ):
-            suggestions[0] = (
-                "Improve the script by clarifying the plot, sharpening dialogue, "
-                "and giving characters stronger motivations."
-            )
+        if review_tokens & {"slow", "boring", "pacing", "drag", "length"}:
+            suggestions[0] = "Focus on pacing: explain which scenes felt slow and how trimming or tightening them would improve the story flow."
+            suggestions[1] = "Use the review to call out repetitive scenes or slow stretches that made the movie feel less engaging."
+        elif review_tokens & {"acting", "performance", "actor", "cast"}:
+            suggestions[0] = "Discuss the acting quality and explain which performances felt flat or unsupported by the writing."
+            suggestions[1] = "Link the weak performances to a specific character or scene so the criticism stays grounded in the film."
+        elif review_tokens & {"story", "plot", "script", "dialogue", "writing"}:
+            suggestions[0] = "Call out the script or plot points that weakened the movie and explain how clearer writing could improve it."
+            suggestions[1] = "Describe where the narrative lost momentum so the review helps viewers understand the major storytelling problem."
 
     else:
-
         heading = "Explore the mixed or neutral reaction further"
-
         suggestions = [
-            "Mention the one element that worked best and the one element that needs the most improvement.",
-            "Compare the film with a similar movie to explain what felt average or familiar.",
-            "Revisit the review after some time and decide whether any scene or performance stayed memorable.",
+            "Mention the one element that worked best and the one element that most needed improvement in the film.",
+            "Compare the movie with a similar title to explain what felt familiar or average about the experience.",
+            "Revisit the review after a second viewing and decide which scene, performance, or idea stayed memorable.",
         ]
 
-    return heading, suggestions
+        if review_tokens & {"story", "plot", "script"}:
+            suggestions[0] = "Explain which story element felt strong and which part of the plot or script lost clarity or momentum."
+        elif review_tokens & {"acting", "performance", "actor"}:
+            suggestions[0] = "Balance the performance praise with the parts that felt inconsistent or less believable."
+
+    return heading, suggestions[:3]
 
 
 init_database()
@@ -785,6 +775,94 @@ def get_sentence_count(text: str) -> int:
 
 
 # ============================================================
+# GIBBERISH & INVALID INPUT VALIDATION
+# ============================================================
+
+KNOWN_CINEMA_ACRONYMS = frozenset({
+    "kgf", "rrr", "vfx", "bgm", "ott", "cgi", "tv", "hd", "dvd",
+    "srk", "ntr", "pk", "bb", "bb2", "dc", "mcu", "fyi", "omg"
+})
+
+COMMON_VALID_WORDS = set(ENGLISH_STOP_WORDS).union(KNOWN_CINEMA_ACRONYMS).union({
+    "movie", "film", "cinema", "story", "acting", "actor", "actors", "actress",
+    "actresses", "plot", "good", "bad", "great", "terrible", "love", "loved",
+    "hate", "hated", "super", "hit", "flop", "watch", "watched", "scene", "scenes",
+    "music", "song", "songs", "director", "directed", "direction", "dangal",
+    "pushpa", "bahubali", "kantara", "leo", "jailer", "superb", "amazing",
+    "fantastic", "boring", "nice", "awesome", "worst", "okay", "average", "fine",
+    "poor", "slow", "waste", "impressive", "best", "theatre", "theater", "hero",
+    "heroine", "villain", "climax", "interval", "screenplay", "dialogue",
+    "dialogues", "soundtrack", "performance", "performances", "action", "drama",
+    "comedy", "thriller", "romance", "horror", "family", "sentiment", "feelings",
+    "lengths", "strengths", "twelfths", "knights", "ordinary", "extraordinary",
+    "protect", "twists", "stakes", "sustained", "suspense", "tightly", "woven"
+})
+
+CONSONANT_STREAK_PATTERN = re.compile(r"[bcdfghjklmnpqrstvwxz]{6,}", re.IGNORECASE)
+REPEATED_CHAR_PATTERN = re.compile(r"(.)\1{4,}", re.IGNORECASE)
+KEYBOARD_MASH_PATTERNS = [
+    "asdfgh", "sdfghj", "dfghjk", "fghjkl",
+    "qwerty", "wertyu", "ertyui", "rtyuio", "tyuiop",
+    "zxcvbn", "xcvbnm", "lkjhgf", "kjhgfd", "jhgfdsa"
+]
+
+
+def validate_review_quality(text: str) -> tuple[bool, str]:
+    """
+    Validate that the input is a genuine text review rather than random
+    gibberish, keyboard mashing, repeated characters, or non-alphabetical spam.
+    """
+    if not text or not text.strip():
+        return False, "Please write a review before analyzing."
+
+    clean_alpha = re.sub(r"[^a-zA-Z\s]", " ", text).strip()
+    words = [w.lower() for w in clean_alpha.split() if w]
+
+    if not words:
+        return False, "Review must contain meaningful text words, not just symbols or numbers."
+
+    total_letters = sum(len(w) for w in words)
+    if total_letters < 2:
+        return False, "Review is too short to evaluate. Please write a complete thought."
+
+    # Check repeated character spam (e.g. 'aaaaaaa', 'zzzzzzz')
+    if REPEATED_CHAR_PATTERN.search(text):
+        return False, "Invalid review: Repeated character spam detected. Please enter meaningful words."
+
+    # Check keyboard mash sequences (e.g. 'asdfghjkl', 'qwertyuiop')
+    normalized_no_spaces = text.lower().replace(" ", "")
+    for mash in KEYBOARD_MASH_PATTERNS:
+        if mash in normalized_no_spaces:
+            return False, "Invalid review: Random keyboard mashing detected. Please enter a real review."
+
+    vocab_set = getattr(vectorizer, "vocabulary_", {})
+    all_valid_words = COMMON_VALID_WORDS.union(vocab_set)
+
+    # Check unrecognized words with extreme consonant streaks (>= 6 consonants like 'kwjfcgqegf')
+    for w in words:
+        if w not in all_valid_words and len(w) >= 5:
+            if CONSONANT_STREAK_PATTERN.search(w):
+                return False, f"Invalid review: Word contains unnatural letter patterns ('{w}')."
+            if len(w) >= 4 and not re.search(r"[aeiouy]", w) and w not in KNOWN_CINEMA_ACRONYMS:
+                return False, f"Invalid review: Unrecognizable word without vowels ('{w}')."
+
+    # Check overall recognition ratio
+    recognized_count = sum(
+        1 for w in words
+        if w in all_valid_words or len(w) <= 2
+    )
+
+    if len(words) >= 1 and recognized_count == 0:
+        all_letters = "".join(words)
+        vowels = len(re.findall(r"[aeiouy]", all_letters))
+        v_ratio = vowels / len(all_letters) if all_letters else 0
+        if v_ratio < 0.20 or v_ratio > 0.80 or len(words) <= 3:
+            return False, "Invalid review: Unrecognized random words detected. Please write a meaningful movie review."
+
+    return True, "Valid"
+
+
+# ============================================================
 # HOME
 # ============================================================
 
@@ -827,6 +905,26 @@ def predict():
         return render_template(
             "index.html",
             error="Please write a review before analyzing.",
+        )
+
+    # Validate review quality and filter out gibberish / spam
+    is_valid, validation_error = validate_review_quality(review_text)
+    if not is_valid:
+        if is_ajax:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": validation_error,
+                    }
+                ),
+                400,
+            )
+
+        return render_template(
+            "index.html",
+            error=validation_error,
+            review_text=review_text,
         )
 
     review_text = review_text[:5000]
@@ -1034,17 +1132,20 @@ def predict():
 
     positive_pct = round(positive_p * 100, 1)
     negative_pct = round(negative_p * 100, 1)
+    neutral_pct = round(max(0.0, 100.0 - positive_pct - negative_pct), 1)
 
     if label == "Positive":
         if positive_pct < 50.0:
             positive_pct = confidence_pct
             negative_pct = round(max(0.0, 100.0 - positive_pct), 1)
+            neutral_pct = round(max(0.0, 100.0 - positive_pct - negative_pct), 1)
         headline = "The review carries a positive emotional signal."
         emoji = "😊"
     elif label == "Negative":
         if negative_pct < 50.0:
             negative_pct = confidence_pct
             positive_pct = round(max(0.0, 100.0 - negative_pct), 1)
+            neutral_pct = round(max(0.0, 100.0 - positive_pct - negative_pct), 1)
         headline = "The review carries a critical or disappointed signal."
         emoji = "🙁"
     else:
@@ -1053,6 +1154,9 @@ def predict():
         if positive_pct == 0 and negative_pct == 0:
             positive_pct = 50.0
             negative_pct = 50.0
+            neutral_pct = 0.0
+
+    neutral_pct = round(min(max(neutral_pct, 0.0), 100.0), 1)
 
     cleaned_preview = cleaned_review if len(cleaned_review) <= 120 else cleaned_review[:117] + "..."
 
@@ -1076,6 +1180,7 @@ def predict():
                 "headline": headline,
                 "positive_pct": positive_pct,
                 "negative_pct": negative_pct,
+                "neutral_pct": neutral_pct,
                 "influential_words": influential,
                 "colors": COLOR_MAP[label],
                 "confidence_pct": confidence_pct,
@@ -1099,6 +1204,7 @@ def predict():
         headline=headline,
         positive_pct=positive_pct,
         negative_pct=negative_pct,
+        neutral_pct=neutral_pct,
         influential_words=influential,
         colors=COLOR_MAP[label],
         confidence_pct=confidence_pct,

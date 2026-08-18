@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Verdict — MovieSense</title><link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=20"></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Verdict — MovieSense</title><link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=42"></head>
 <body class="page-shell">
-<header class="site-nav"><div class="nav-inner"><a class="brand" href="{{ url_for('index') }}"><span class="brand-mark"><img src="{{ url_for('static', filename='images/moviesense-logo.jpg') }}" alt="MovieSense Logo" class="brand-logo-img"></span><span>Movie<span>Sense</span></span></a><nav class="nav-links"><a href="{{ url_for('index') }}">Home</a><a href="{{ url_for('index') }}#analyze">Analyze</a><a href="{{ url_for('history') }}">History</a><a href="{{ url_for('analytics') }}">Analytics</a><a href="{{ url_for('booking') }}">Tickets</a></nav></div></header>
-<section class="result-hero"><div class="result-header"><a href="{{ url_for('index') }}#analyze" class="back-link">← Analyze another review</a><p class="section-kicker">SCENE 02 · THE VERDICT</p><h1 class="result-title">The verdict is in.</h1><p class="result-subtitle">MovieSense has finished reading your review. Here is the sentiment, confidence, and the movie-making themes it picked up.</p></div></section>
+<header class="site-nav"><div class="nav-inner"><a class="brand" href="{{ url_for('index') }}"><span class="brand-mark"><img src="{{ url_for('static', filename='images/moviesense-logo.jpg') }}" alt="MovieSense Logo" class="brand-logo-img"></span><span class="brand-title">Movie Review <span>Sentiment Analysis</span></span></a><nav class="nav-links"><a href="{{ url_for('index') }}">Home</a><a href="{{ url_for('index') }}#analyze">Analyze</a><a href="{{ url_for('history') }}">History</a><a href="{{ url_for('analytics') }}">Analytics</a><a href="{{ url_for('booking') }}">Tickets</a></nav></div></header>
+<section class="result-hero"><div class="result-header"><a href="{{ url_for('index') }}#analyze" class="back-link">← Analyze another review</a><p class="section-kicker">SCENE 02 · THE VERDICT</p><h1 class="result-title">The verdict is in.</h1><p class="result-subtitle">Movie Review Sentiment Analysis has finished reading your review. Here is the sentiment, confidence, and the movie-making themes it picked up.</p></div></section>
 <main class="result-container">
 <section class="review-card">
   <div class="card-label">YOUR REVIEW</div><p class="review-content">“{{ review_text }}”</p>
@@ -18,7 +18,7 @@
 <section class="probability-section">
   <div class="section-title section-title-centered"><p class="section-kicker">THE NUMBERS</p><h2>Prediction confidence</h2><div class="gold-rule"></div></div>
   <div class="confidence-callout"><div class="confidence-title">Confidence level</div><div class="confidence-value">{{ confidence_pct }}%</div><div class="confidence-hint">{% if label == "Neutral" %}The model did not strongly lean Positive or Negative. Mixed praise and criticism can produce a neutral result.{% else %}{{ confidence_strength }} confidence, based on the model's predicted probability for this review.{% endif %}</div></div>
-  <div class="result-suggestions-link"><div><span>AI-ASSISTED REVIEW INSIGHTS</span><p>Get useful suggestions tailored to this analysis.</p></div><a href="{{ url_for('suggestions', analysis_id=analysis_id) }}" class="btn btn-gold">View Suggestions →</a></div>
+  <div class="result-suggestions-link"><div><span>AI-ASSISTED REVIEW INSIGHTS</span><p>Get useful suggestions tailored to this analysis.</p></div><a href="{{ url_for('suggestions', analysis_id=analysis_id) }}" class="btn btn-gold">View Suggestions</a></div>
 </section>
 <section class="report-section">
   <div class="report-copy"><p class="section-kicker">TAKE IT WITH YOU</p><h2>Download the report</h2><p class="report-description">Save the review, prediction, confidence, statistics, and model information as a simple text report.</p>

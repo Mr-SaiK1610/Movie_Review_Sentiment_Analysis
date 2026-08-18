@@ -4,19 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MovieSense — Indian Movie Review Sentiment</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=41">
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=50">
 </head>
 <body>
 <div class="announcement-bar">Celebrating the magic of Indian cinema · Bollywood · Tollywood · Kollywood · Mollywood · Sandalwood</div>
 
 <header class="site-nav">
   <div class="nav-inner">
-    <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark"><img src="{{ url_for('static', filename='images/moviesense-logo.jpg') }}" alt="MovieSense Logo" class="brand-logo-img"></span><span>Movie<span> Review<span> Sentiment<span> Analysis</span></span></a>
+    <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark"><img src="{{ url_for('static', filename='images/moviesense-logo.jpg') }}" alt="MovieSense Logo" class="brand-logo-img"></span><span class="brand-title">Movie Review <span>Sentiment Analysis</span></span></a>
     <div class="nav-right-group">
       <nav class="nav-links">
         <a class="active" href="{{ url_for('index') }}">Home</a>
-        <a href="#movies">Movies</a>
-        <a href="#experience" class="how-link">Experience</a>
+        <a href="{{ url_for('index') }}#movies">Movies</a>
+        <a href="{{ url_for('index') }}#experience" class="how-link">Experience</a>
       </nav>
       <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle dark/light mode" type="button" title="Switch theme">
         <span class="theme-toggle-icon theme-icon-sun" aria-hidden="true">☀️</span>
@@ -35,41 +35,10 @@
           <div class="nav-dropdown-header">
             <span>Quick Navigation</span>
           </div>
-          <a href="{{ url_for('index') }}" class="nav-dropdown-item">
-            <span class="dropdown-item-icon">⌂</span>
-            <div class="dropdown-item-text">
-              <strong>Home</strong>
-              <small>Explore movies & reviews</small>
-            </div>
-          </a>
-          <a href="{{ url_for('analytics') }}" class="nav-dropdown-item">
-            <span class="dropdown-item-icon">◔</span>
-            <div class="dropdown-item-text">
-              <strong>Analytics</strong>
-              <small>Sentiment breakdown & stats</small>
-            </div>
-          </a>
-          <a href="{{ url_for('history') }}" class="nav-dropdown-item">
-            <span class="dropdown-item-icon">◷</span>
-            <div class="dropdown-item-text">
-              <strong>History</strong>
-              <small>Past decoded reviews</small>
-            </div>
-          </a>
-          <a href="{{ url_for('index') }}#analyze" class="nav-dropdown-item nav-dropdown-analyze" id="dropdownAnalyzeLink">
-            <span class="dropdown-item-icon">＋</span>
-            <div class="dropdown-item-text">
-              <strong>New Analyze</strong>
-              <small>Decode a new movie review</small>
-            </div>
-          </a>
-          <a href="{{ url_for('booking') }}" class="nav-dropdown-item">
-            <span class="dropdown-item-icon">🎟️</span>
-            <div class="dropdown-item-text">
-              <strong>Book Tickets</strong>
-              <small>Find showtimes & book seats</small>
-            </div>
-          </a>
+          <a href="{{ url_for('index') }}" class="nav-dropdown-item"><span class="dropdown-item-label">Home</span></a>
+          <a href="{{ url_for('history') }}" class="nav-dropdown-item"><span class="dropdown-item-label">History</span></a>
+          <a href="{{ url_for('analytics') }}" class="nav-dropdown-item"><span class="dropdown-item-label">Analytics</span></a>
+          <a href="{{ url_for('booking') }}" class="nav-dropdown-item"><span class="dropdown-item-label">Tickets</span></a>
         </div>
       </div>
     </div>
@@ -162,12 +131,6 @@
             {{ headline if headline else 'The review carries a positive emotional signal.' }}
           </h3>
 
-          <div class="ai-context-banner">
-            <span class="ai-context-tag">Processed for trained model</span>
-            <span class="ai-context-sep">•</span>
-            <span class="ai-context-text" id="resultCleanedPreview">{{ cleaned_preview if cleaned_preview else (review_text if review_text else '') }}</span>
-          </div>
-
           <!-- Probability Breakdown -->
           <div class="ai-prob-breakdown">
             <div class="ai-prob-row">
@@ -184,6 +147,13 @@
               </div>
               <span class="ai-prob-num" id="valNegative">{{ negative_pct if negative_pct else '5.0' }}%</span>
             </div>
+            <div class="ai-prob-row">
+              <span class="ai-prob-name">Neutral</span>
+              <div class="ai-prob-track">
+                <div class="ai-prob-fill fill-neutral" id="barNeutral" style="width: {{ neutral_pct if neutral_pct is not none else 0.0 }}%;"></div>
+              </div>
+              <span class="ai-prob-num" id="valNeutral">{{ neutral_pct if neutral_pct is not none else '0.0' }}%</span>
+            </div>
           </div>
         </div>
       </div>
@@ -193,7 +163,6 @@
         <!-- Influential Words -->
         <div class="ai-subcard influential-words-subcard">
           <div class="ai-subcard-head">
-            <span class="ai-subcard-icon">🔍</span>
             <h4>Influential words</h4>
           </div>
           <p class="ai-subcard-desc">Words that helped shape the prediction.</p>
@@ -212,7 +181,6 @@
         <!-- Review Insights -->
         <div class="ai-subcard review-insights-subcard">
           <div class="ai-subcard-head">
-            <span class="ai-subcard-icon">📊</span>
             <h4>Review insights</h4>
           </div>
           <div class="ai-insights-grid">
@@ -241,9 +209,10 @@
           <input type="hidden" name="word_count" id="reportWordCount" value="{{ word_count if word_count else '' }}">
           <input type="hidden" name="confidence_strength" id="reportConfidenceStrength" value="{{ confidence_strength if confidence_strength else '' }}">
           <input type="hidden" name="confidence_pct" id="reportConfidencePct" value="{{ confidence_pct if confidence_pct else '' }}">
-          <button type="submit" class="ai-action-btn ai-action-download">⬇ <span>Download Report</span></button>
+          <button type="submit" class="ai-action-btn ai-action-download"><span>Download Report</span></button>
         </form>
-        <a href="#analyze" class="ai-action-btn ai-action-new" id="newAnalyzeBtn">＋ <span>New Analyze</span></a>
+        <a href="#" class="ai-action-btn ai-action-suggestions" id="resultActionSuggestions" style="display:none;"><span>AI Suggestions</span></a>
+        <a href="#analyze" class="ai-action-btn ai-action-new" id="newAnalyzeBtn"><span>New Analyze</span></a>
       </div>
 
     </div>
@@ -253,14 +222,14 @@
 <section class="poster-world" id="movies">
   <div class="container">
     <div class="section-head centered-head">
-      <div><p class="section-kicker">EXPLORE INDIAN CINEMA</p><h2>Stories, characters & cinema.</h2></div>
+      <div><p class="section-kicker">EXPLORE INDIAN CINEMA</p><h2>Stories, characters and cinema.</h2></div>
       <p>From big-screen spectacles to unforgettable stories, every film carries a feeling worth talking about.</p>
     </div>
     <div class="poster-rail">
       <article class="movie-card" data-sample="A brutal, emotionally charged action drama driven by obsession, family conflict, and revenge. Its larger-than-life style and intense performances make it a gripping, high-energy experience.">
         <div class="movie-card-media">
           <span class="movie-card-lang">HINDI</span>
-          <img src="{{ url_for('static', filename='images/animal.jpg') }}" alt="Animal poster">
+          <img src="{{ url_for('static', filename='images/animal.jpg') }}?v=46" alt="Animal poster" loading="lazy">
         </div>
         <div class="movie-card-info">
           <strong class="movie-card-title">Animal</strong>
@@ -272,7 +241,7 @@
       <article class="movie-card" data-sample="A tightly woven family thriller where an ordinary man goes to extraordinary lengths to protect his loved ones. Smart twists, emotional stakes, and sustained suspense keep the story engaging.">
         <div class="movie-card-media">
           <span class="movie-card-lang">TELUGU</span>
-          <img src="{{ url_for('static', filename='images/drushyam.jpg') }}" alt="Drushyam poster">
+          <img src="{{ url_for('static', filename='images/drushyam.jpg') }}?v=46" alt="Drushyam poster" loading="lazy">
         </div>
         <div class="movie-card-info">
           <strong class="movie-card-title">Drushyam</strong>
@@ -284,7 +253,7 @@
       <article class="movie-card" data-sample="A massive-scale adventure promising mythology, action, and spectacular world-building. With its epic premise and ambitious visual scope, it has the feel of a major cinematic event.">
         <div class="movie-card-media">
           <span class="movie-card-lang">TELUGU</span>
-          <img src="{{ url_for('static', filename='images/varanasi.jpg') }}" alt="Varanasi poster">
+          <img src="{{ url_for('static', filename='images/varanasi.jpg') }}?v=46" alt="Varanasi poster" loading="lazy">
         </div>
         <div class="movie-card-info">
           <strong class="movie-card-title">Varanasi</strong>
@@ -296,7 +265,7 @@
       <article class="movie-card" data-sample="A deeply inspiring story about failure, persistence, and starting over. Grounded performances and an honest portrayal of struggle make this an uplifting film about refusing to give up.">
         <div class="movie-card-media">
           <span class="movie-card-lang">HINDI</span>
-          <img src="{{ url_for('static', filename='images/12th-fail.jpg') }}" alt="12th Fail poster">
+          <img src="{{ url_for('static', filename='images/12th-fail.jpg') }}?v=46" alt="12th Fail poster" loading="lazy">
         </div>
         <div class="movie-card-info">
           <strong class="movie-card-title">12th Fail</strong>
@@ -308,7 +277,7 @@
       <article class="movie-card" data-sample="A powerful sports drama about ambition, discipline, family, and breaking expectations. The emotional father-daughter journey and gripping wrestling sequences make it both inspiring and deeply moving.">
         <div class="movie-card-media">
           <span class="movie-card-lang">HINDI</span>
-          <img src="{{ url_for('static', filename='images/dangal.jpg') }}" alt="Dangal poster">
+          <img src="{{ url_for('static', filename='images/dangal.jpg') }}?v=46" alt="Dangal poster" loading="lazy">
         </div>
         <div class="movie-card-info">
           <strong class="movie-card-title">Dangal</strong>
@@ -320,7 +289,7 @@
       <article class="movie-card" data-sample="A thunderous action spectacle built around loyalty, friendship, betrayal, and power. Its huge set pieces, dark atmosphere, intense performances, and larger-than-life presentation deliver a full-scale mass-cinema experience.">
         <div class="movie-card-media">
           <span class="movie-card-lang">TELUGU</span>
-          <img src="{{ url_for('static', filename='images/salaar.jpg') }}" alt="Salaar poster">
+          <img src="{{ url_for('static', filename='images/salaar.jpg') }}?v=46" alt="Salaar poster" loading="lazy">
         </div>
         <div class="movie-card-info">
           <strong class="movie-card-title">Salaar: Part 1 – Ceasefire</strong>
@@ -332,7 +301,7 @@
       <article class="movie-card" data-sample="A beautifully crafted biographical drama that celebrates a legendary actress while portraying the highs and lows of fame, love, and personal struggle. Rich performances, period detail, and emotional storytelling make it a memorable cinematic experience.">
         <div class="movie-card-media">
           <span class="movie-card-lang">TELUGU</span>
-          <img src="{{ url_for('static', filename='images/mahanati.jpg') }}" alt="Mahanati poster">
+          <img src="{{ url_for('static', filename='images/mahanati.jpg') }}?v=46" alt="Mahanati poster" loading="lazy">
         </div>
         <div class="movie-card-info">
           <strong class="movie-card-title">Mahanati</strong>
@@ -344,7 +313,7 @@
       <article class="movie-card" data-sample="A deeply emotional sports drama about second chances, self-belief, and a father’s determination to make his son proud. Its heartfelt storytelling and powerful performances make the cricket journey feel personal and inspiring.">
         <div class="movie-card-media">
           <span class="movie-card-lang">TELUGU</span>
-          <img src="{{ url_for('static', filename='images/jersey.jpg') }}" alt="Jersey poster">
+          <img src="{{ url_for('static', filename='images/jersey.jpg') }}?v=46" alt="Jersey poster" loading="lazy">
         </div>
         <div class="movie-card-info">
           <strong class="movie-card-title">Jersey</strong>
@@ -514,6 +483,11 @@ if (reviewForm) {
       const valNeg = document.getElementById('valNegative');
       if (barNeg) barNeg.style.width = `${data.negative_pct}%`;
       if (valNeg) valNeg.textContent = `${data.negative_pct}%`;
+
+      const barNeutral = document.getElementById('barNeutral');
+      const valNeutral = document.getElementById('valNeutral');
+      if (barNeutral) barNeutral.style.width = `${data.neutral_pct ?? 0}%`;
+      if (valNeutral) valNeutral.textContent = `${data.neutral_pct ?? 0}%`;
 
       // Update Influential Words Chips
       const wordsContainer = document.getElementById('resultWordChips');

@@ -4,19 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sentiment Analytics — MovieSense</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=35">
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=45">
 </head>
 <body>
 <div class="announcement-bar">Celebrating the magic of Indian cinema · Bollywood · Tollywood · Kollywood · Mollywood · Sandalwood</div>
 
 <header class="site-nav">
   <div class="nav-inner">
-    <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark"><img src="{{ url_for('static', filename='images/moviesense-logo.jpg') }}" alt="MovieSense Logo" class="brand-logo-img"></span><span>Movie<span>Sense</span></span></a>
+    <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark"><img src="{{ url_for('static', filename='images/moviesense-logo.jpg') }}" alt="MovieSense Logo" class="brand-logo-img"></span><span class="brand-title">Movie Review <span>Sentiment Analysis</span></span></a>
     <div class="nav-right-group">
       <nav class="nav-links">
         <a href="{{ url_for('index') }}">Home</a>
-        <a href="{{ url_for('history') }}">History</a>
-        <a class="active" href="{{ url_for('analytics') }}">Analytics</a>
+        <a href="{{ url_for('index') }}#movies">Movies</a>
+        <a href="{{ url_for('index') }}#experience">Experience</a>
       </nav>
       <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle dark/light mode" type="button" title="Switch theme">
         <span class="theme-toggle-icon theme-icon-sun" aria-hidden="true">☀️</span>
@@ -35,34 +35,10 @@
           <div class="nav-dropdown-header">
             <span>Quick Navigation</span>
           </div>
-          <a href="{{ url_for('index') }}" class="nav-dropdown-item">
-            <span class="dropdown-item-icon">⌂</span>
-            <div class="dropdown-item-text">
-              <strong>Home</strong>
-              <small>Explore movies & reviews</small>
-            </div>
-          </a>
-          <a href="{{ url_for('analytics') }}" class="nav-dropdown-item">
-            <span class="dropdown-item-icon">◔</span>
-            <div class="dropdown-item-text">
-              <strong>Analytics</strong>
-              <small>Sentiment breakdown & stats</small>
-            </div>
-          </a>
-          <a href="{{ url_for('history') }}" class="nav-dropdown-item">
-            <span class="dropdown-item-icon">◷</span>
-            <div class="dropdown-item-text">
-              <strong>History</strong>
-              <small>Past decoded reviews</small>
-            </div>
-          </a>
-          <a href="{{ url_for('index') }}#analyze" class="nav-dropdown-item nav-dropdown-analyze">
-            <span class="dropdown-item-icon">＋</span>
-            <div class="dropdown-item-text">
-              <strong>New Analyze</strong>
-              <small>Decode a new movie review</small>
-            </div>
-          </a>
+          <a href="{{ url_for('index') }}" class="nav-dropdown-item"><span class="dropdown-item-label">Home</span></a>
+          <a href="{{ url_for('history') }}" class="nav-dropdown-item"><span class="dropdown-item-label">History</span></a>
+          <a href="{{ url_for('analytics') }}" class="nav-dropdown-item"><span class="dropdown-item-label">Analytics</span></a>
+          <a href="{{ url_for('booking') }}" class="nav-dropdown-item"><span class="dropdown-item-label">Tickets</span></a>
         </div>
       </div>
     </div>
@@ -92,7 +68,7 @@
           <article class="analytics-panel-card eval-graph-card">
             <div class="eval-card-head">
               <span class="section-kicker">PERFORMANCE GRAPH</span>
-              <h3>Accuracy, precision, recall & F1</h3>
+              <h3>Accuracy, precision, recall and F1</h3>
             </div>
 
             <div class="eval-bars-list">
@@ -375,7 +351,7 @@
             <span class="metric-card-badge badge-positive">{{ percentages['Positive'] }}%</span>
           </div>
           <div class="metric-card-value" style="color: #28c76f;">{{ counts['Positive'] }}</div>
-          <p class="metric-card-sub">Rave & favorable opinions</p>
+          <p class="metric-card-sub">Rave and favorable opinions</p>
           <div class="metric-bar-mini">
             <div class="metric-bar-fill" style="width: {{ percentages['Positive'] }}%; background: #28c76f;"></div>
           </div>
@@ -508,7 +484,7 @@
             </div>
             <div class="recent-item-foot">
               <span>{{ item['created_at'] }}</span>
-              <a href="{{ url_for('suggestions', analysis_id=item['id']) }}" style="color:var(--saffron);font-weight:800;text-decoration:underline;">Inspect Insights →</a>
+              <a href="{{ url_for('suggestions', analysis_id=item['id']) }}" style="color:var(--saffron);font-weight:800;text-decoration:underline;">Inspect Insights</a>
             </div>
           </div>
           {% endfor %}
@@ -523,7 +499,7 @@
           <span class="section-kicker">NO SESSION REVIEWS YET</span>
           <h2 style="font-size: 26px; margin: 6px 0 10px;">Session breakdown will appear here.</h2>
           <p style="color: var(--muted); font-size: 13.5px; margin-bottom: 20px;">Analyze movie reviews on the home page to populate live session sentiment distributions, confidence charts, and extracted cinema themes.</p>
-          <a href="{{ url_for('index') }}#analyze" class="btn btn-saffron" style="font-size: 13px; padding: 10px 22px;">Analyze First Review →</a>
+          <a href="{{ url_for('index') }}#analyze" class="btn btn-saffron" style="font-size: 13px; padding: 10px 22px;">Analyze First Review</a>
         </article>
       </div>
       {% endif %}
@@ -535,7 +511,7 @@
           <h2>Analyze another movie review</h2>
           <p>Paste or speak another review to add it to your live session analytics.</p>
         </div>
-        <a href="{{ url_for('index') }}#analyze" class="btn btn-saffron" style="font-size: 14px; padding: 14px 28px;">＋ Analyze New Review</a>
+        <a href="{{ url_for('index') }}#analyze" class="btn btn-saffron" style="font-size: 14px; padding: 14px 28px;">Analyze New Review</a>
       </section>
 
     </div>

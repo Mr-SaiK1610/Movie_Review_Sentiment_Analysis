@@ -1,6 +1,86 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Review Insights — MovieSense</title><link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=20"></head><body>
-<header class="site-nav"><div class="nav-inner"><a class="brand" href="{{ url_for('index') }}"><span class="brand-mark"><img src="{{ url_for('static', filename='images/moviesense-logo.jpg') }}" alt="MovieSense Logo" class="brand-logo-img"></span><span>Movie<span>Sense</span></span></a><nav class="nav-links"><a href="{{ url_for('index') }}">Home</a><a href="{{ url_for('index') }}#analyze">Analyze</a><a href="{{ url_for('history') }}">History</a><a href="{{ url_for('analytics') }}">Analytics</a><a href="{{ url_for('booking') }}">Tickets</a></nav></div></header>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Review Insights — MovieSense</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=50">
+</head>
+<body>
+<div class="announcement-bar">Celebrating the magic of Indian cinema · Bollywood · Tollywood · Kollywood · Mollywood · Sandalwood</div>
+
+<header class="site-nav">
+  <div class="nav-inner">
+    <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark"><img src="{{ url_for('static', filename='images/moviesense-logo.jpg') }}" alt="MovieSense Logo" class="brand-logo-img"></span><span class="brand-title">Movie Review <span>Sentiment Analysis</span></span></a>
+    <div class="nav-right-group">
+      <nav class="nav-links">
+        <a class="active" href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('index') }}#movies">Movies</a>
+        <a href="{{ url_for('index') }}#experience" class="how-link">Experience</a>
+      </nav>
+      <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle dark/light mode" type="button" title="Switch theme">
+        <span class="theme-toggle-icon theme-icon-sun" aria-hidden="true">☀️</span>
+        <span class="theme-toggle-icon theme-icon-moon" aria-hidden="true">🌙</span>
+      </button>
+      <div class="nav-menu-wrapper">
+        <button class="nav-menu-btn" id="navMenuBtn" aria-label="Toggle navigation menu" aria-expanded="false" type="button">
+          <span class="menu-icon-bars" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span>Menu</span>
+        </button>
+        <div class="nav-dropdown" id="navDropdown" aria-hidden="true">
+          <div class="nav-dropdown-header"><span>Quick Navigation</span></div>
+          <a href="{{ url_for('index') }}" class="nav-dropdown-item"><span class="dropdown-item-label">Home</span></a>
+          <a href="{{ url_for('history') }}" class="nav-dropdown-item"><span class="dropdown-item-label">History</span></a>
+          <a href="{{ url_for('analytics') }}" class="nav-dropdown-item"><span class="dropdown-item-label">Analytics</span></a>
+          <a href="{{ url_for('booking') }}" class="nav-dropdown-item"><span class="dropdown-item-label">Tickets</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
 <section class="result-hero"><div class="result-header"><a href="{{ url_for('history') }}" class="back-link">← Back to history</a><p class="section-kicker">THE DIRECTOR'S NOTES</p><h1>Review insights.</h1><p class="result-subtitle">A closer look at your {{ analysis['label'].lower() }} reaction.</p></div></section>
 <main class="result-container"><section class="verdict-card" style="background:{{ colors.bg_soft }};border-color:{{ colors.border }};"><div class="verdict-label" style="color:{{ colors.text }}">ANALYSIS RESULT</div><div class="verdict-value" style="color:{{ colors.text }}">{{ analysis['label']|upper }}</div><p class="suggestion-date">{{ analysis['confidence_pct'] }}% confidence</p></section>
 <section class="insights-card" style="margin-top:18px"><span class="eyebrow">Smart Suggestions</span><h2>{{ heading }}</h2><p class="review-content">“{{ analysis['review_text'] }}”</p><ol class="suggestion-list">{% for suggestion in suggestions %}<li>{{ suggestion }}</li>{% endfor %}</ol></section>
-<div class="actions-row"><a href="{{ url_for('history') }}" class="btn btn-ghost btn-wide">View History</a><a href="{{ url_for('index') }}#analyze" class="btn btn-gold btn-wide">Analyze Another Review →</a></div></main><footer class="result-footer">MOVIESENSE · DIRECTOR'S NOTES</footer></body></html>
+<div class="actions-row"><a href="{{ url_for('history') }}" class="btn btn-ghost btn-wide">View History</a><a href="{{ url_for('index') }}#analyze" class="btn btn-gold btn-wide">Analyze Another Review</a></div></main>
+<footer class="result-footer">MOVIE REVIEW SENTIMENT ANALYSIS · DIRECTOR'S NOTES</footer>
+
+<script>
+const navMenuBtn = document.getElementById('navMenuBtn');
+const navDropdown = document.getElementById('navDropdown');
+if (navMenuBtn && navDropdown) {
+  function toggleNavMenu(show) {
+    const isExpanded = show !== undefined ? show : !navDropdown.classList.contains('show');
+    navDropdown.classList.toggle('show', isExpanded);
+    navMenuBtn.classList.toggle('active', isExpanded);
+    navMenuBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+    navDropdown.setAttribute('aria-hidden', isExpanded ? 'false' : 'true');
+  }
+  navMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleNavMenu(); });
+  document.addEventListener('click', (e) => { if (!navMenuBtn.contains(e.target) && !navDropdown.contains(e.target)) toggleNavMenu(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleNavMenu(false); });
+}
+
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+function applyTheme(isDark) {
+  if (isDark) {
+    document.body.classList.add('dark-mode');
+    localStorage.setItem('moviesense-theme', 'dark');
+  } else {
+    document.body.classList.remove('dark-mode');
+    localStorage.setItem('moviesense-theme', 'light');
+  }
+}
+if (localStorage.getItem('moviesense-theme') === 'dark') {
+  applyTheme(true);
+} else {
+  applyTheme(false);
+}
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener('click', () => {
+    applyTheme(!document.body.classList.contains('dark-mode'));
+  });
+}
+</script>
+</body>
+</html>
