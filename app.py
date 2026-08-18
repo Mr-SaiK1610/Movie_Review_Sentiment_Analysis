@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import sqlite3
@@ -5,8 +6,9 @@ from collections import Counter
 from datetime import datetime
 
 import joblib
-from flask import Flask, Response, abort, render_template, request
+from flask import Flask, Response, abort, jsonify, render_template, request
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -17,6 +19,7 @@ def _find_artifact(filename):
 
     if os.path.exists(root_path):
         return root_path
+
     if os.path.exists(model_dir_path):
         return model_dir_path
 
@@ -24,29 +27,203 @@ def _find_artifact(filename):
 
 
 app = Flask(__name__)
+
 DATABASE_PATH = os.path.join(BASE_DIR, "review_history.db")
 
-vectorizer = joblib.load(_find_artifact("tfidf_vectorizer.joblib"))
-model = joblib.load(_find_artifact("logistic_regression_model.joblib"))
+vectorizer = joblib.load(
+    _find_artifact("tfidf_vectorizer.joblib")
+)
 
-ENGINE_NAME = "TF-IDF + Logistic Regression"
+model = joblib.load(
+    _find_artifact("logistic_regression_model.joblib")
+)
+if not hasattr(model, "multi_class"):
+    model.multi_class = "auto"
+
+ENGINE_NAME = "TF-IDF + Logistic Regression + Rule-Based Linguistic Analysis"
+
+
+# ============================================================
+# NEGATION / STOP WORDS
+# ============================================================
 
 NEGATION_WORDS = frozenset(
-    {"no", "nor", "not", "never", "neither", "none", "nothing", "without"}
+    {
+        "no",
+        "nor",
+        "not",
+        "never",
+        "neither",
+        "none",
+        "nothing",
+        "without",
+    }
 )
-STOP_WORDS = sorted(ENGLISH_STOP_WORDS.difference(NEGATION_WORDS))
+
+STOP_WORDS = sorted(
+    ENGLISH_STOP_WORDS.difference(NEGATION_WORDS)
+)
+
+
+# ============================================================
+# NEGATION PATTERNS
+# ============================================================
 
 NEGATED_POSITIVE_PATTERN = re.compile(
-    r"\b(?:not|never|no|hardly|rarely)\s+(?:very\s+|really\s+)?"
-    r"(?:good|great|excellent|amazing|fantastic|brilliant|wonderful|awesome|"
-    r"enjoyable|perfect|impressive|impressed|memorable|love(?:d)?)\b",
+    r"\b(?:"
+    r"not|never|no|hardly|rarely|"
+    r"did\s+not|didn['’]t|"
+    r"do\s+not|don['’]t|"
+    r"does\s+not|doesn['’]t|"
+    r"would\s+not|wouldn['’]t"
+    r")\s+"
+    r"(?:very\s+|really\s+)?"
+    r"(?:"
+    r"good|great|excellent|amazing|fantastic|brilliant|wonderful|awesome|"
+    r"enjoyable|perfect|impressive|impressed|memorable|"
+    r"love|loved|like|liked|recommend|recommended"
+    r")\b",
     re.IGNORECASE,
 )
+
 NEGATED_NEGATIVE_PATTERN = re.compile(
-    r"\b(?:not|never|no|hardly|rarely)\s+(?:very\s+|really\s+)?"
-    r"(?:bad|terrible|awful|boring|disappointing|poor|weak|forgettable)\b",
+    r"\b(?:"
+    r"not|never|no|hardly|rarely|"
+    r"did\s+not|didn['’]t|"
+    r"do\s+not|don['’]t|"
+    r"does\s+not|doesn['’]t"
+    r")\s+"
+    r"(?:very\s+|really\s+)?"
+    r"(?:"
+    r"bad|terrible|awful|boring|disappointing|poor|weak|forgettable|"
+    r"hate|hated|worst|horrible"
+    r")\b",
     re.IGNORECASE,
 )
+
+# ============================================================
+# NEUTRAL EXPRESSIONS
+# ============================================================
+
+NEUTRAL_PHRASES = (
+    "okay",
+    "ok",
+    "average",
+    "nothing special",
+    "nothing great",
+    "nothing impressive",
+    "nothing memorable",
+    "so so",
+    "so-so",
+    "mediocre",
+    "ordinary",
+    "just fine",
+    "neither good nor bad",
+    "neither bad nor good",
+)
+
+
+# ============================================================
+# MIXED SENTIMENT CONNECTORS
+# ============================================================
+
+MIXED_CONNECTORS = (
+    "but",
+    "however",
+    "although",
+    "though",
+    "yet",
+    "while",
+)
+
+
+# ============================================================
+# SENTIMENT VOCABULARY
+# ============================================================
+
+POSITIVE_WORDS = {
+    "good",
+    "great",
+    "excellent",
+    "amazing",
+    "fantastic",
+    "brilliant",
+    "wonderful",
+    "awesome",
+    "enjoyable",
+    "perfect",
+    "impressive",
+    "impressed",
+    "memorable",
+    "love",
+    "loved",
+    "interesting",
+    "outstanding",
+    "beautiful",
+    "best",
+    "fun",
+    "entertaining",
+    "strong",
+    "superb",
+    "engaging",
+    "like",
+    "liked",
+}
+
+NEGATIVE_WORDS = {
+    "bad",
+    "terrible",
+    "awful",
+    "boring",
+    "disappointing",
+    "poor",
+    "weak",
+    "forgettable",
+    "worst",
+    "hate",
+    "hated",
+    "dull",
+    "slow",
+    "waste",
+    "wasted",
+    "annoying",
+    "poorly",
+    "horrible",
+    "mediocre",
+    "uninteresting",
+}
+
+
+# Stronger words receive more weight.
+STRONG_POSITIVE_WORDS = {
+    "excellent",
+    "amazing",
+    "fantastic",
+    "brilliant",
+    "wonderful",
+    "awesome",
+    "perfect",
+    "outstanding",
+    "superb",
+    "best",
+    "love",
+    "loved",
+}
+
+STRONG_NEGATIVE_WORDS = {
+    "terrible",
+    "awful",
+    "horrible",
+    "worst",
+    "hated",
+    "hate",
+    "disastrous",
+}
+
+
+# ============================================================
+# UI COLORS
+# ============================================================
 
 COLOR_MAP = {
     "Positive": {
@@ -66,15 +243,62 @@ COLOR_MAP = {
     },
 }
 
+
+# ============================================================
+# REVIEW THEMES
+# ============================================================
+
 REVIEW_THEMES = {
-    "Acting": ("acting", "actor", "actors", "performance", "performances", "cast"),
-    "Story": ("story", "plot", "script", "writing", "character", "characters"),
-    "Visuals": ("visual", "visuals", "cinematography", "camera", "effects", "scenes"),
-    "Music": ("music", "soundtrack", "song", "songs", "score"),
-    "Pacing": ("pacing", "slow", "fast", "drag", "dragged", "length"),
-    "Direction": ("director", "direction", "directed"),
+    "Acting": (
+        "acting",
+        "actor",
+        "actors",
+        "performance",
+        "performances",
+        "cast",
+    ),
+    "Story": (
+        "story",
+        "plot",
+        "script",
+        "writing",
+        "character",
+        "characters",
+    ),
+    "Visuals": (
+        "visual",
+        "visuals",
+        "cinematography",
+        "camera",
+        "effects",
+        "scenes",
+    ),
+    "Music": (
+        "music",
+        "soundtrack",
+        "song",
+        "songs",
+        "score",
+    ),
+    "Pacing": (
+        "pacing",
+        "slow",
+        "fast",
+        "drag",
+        "dragged",
+        "length",
+    ),
+    "Direction": (
+        "director",
+        "direction",
+        "directed",
+    ),
 }
 
+
+# ============================================================
+# DATABASE
+# ============================================================
 
 def get_database_connection():
     """Return a connection to the local analysis-history database."""
@@ -117,36 +341,69 @@ def save_analysis(review_text, label, confidence_pct):
                 datetime.now().strftime("%d %b %Y, %I:%M %p"),
             ),
         )
+
         return cursor.lastrowid
 
 
+# ============================================================
+# SUGGESTIONS
+# ============================================================
+
 def build_suggestions(label, review_text):
-    """Create useful, sentiment-aware review insights without an external API."""
+    """Create useful, sentiment-aware review insights."""
     review = review_text.lower()
 
     if label == "Positive":
+
         suggestions = [
             "Highlight the strongest part of the film when sharing this review with others.",
             "Recommend it to viewers who enjoy this genre, cast, or style of storytelling.",
             "Add one memorable scene or performance to make your recommendation more useful.",
         ]
+
         heading = "Turn your positive reaction into a useful recommendation"
+
     elif label == "Negative":
+
         suggestions = [
             "State the main issue clearly so filmmakers or viewers can understand the criticism.",
             "Balance criticism with one specific example from the film for a stronger review.",
             "Suggest the kind of viewer who may still enjoy the movie despite these concerns.",
         ]
+
         heading = "Shape your criticism into constructive feedback"
 
-        if any(word in review for word in ("slow", "boring", "pacing", "drag")):
-            suggestions[0] = "Consider tighter pacing: remove slow scenes and make each sequence move the story forward."
-        elif any(word in review for word in ("acting", "performance", "actor")):
-            suggestions[0] = "Strengthen character direction and performances so the emotional moments feel believable."
-        elif any(word in review for word in ("story", "plot", "script", "dialogue")):
-            suggestions[0] = "Improve the script by clarifying the plot, sharpening dialogue, and giving characters stronger motivations."
+        if any(
+            word in review
+            for word in ("slow", "boring", "pacing", "drag")
+        ):
+            suggestions[0] = (
+                "Consider tighter pacing: remove slow scenes and make each sequence "
+                "move the story forward."
+            )
+
+        elif any(
+            word in review
+            for word in ("acting", "performance", "actor")
+        ):
+            suggestions[0] = (
+                "Strengthen character direction and performances so the emotional "
+                "moments feel believable."
+            )
+
+        elif any(
+            word in review
+            for word in ("story", "plot", "script", "dialogue")
+        ):
+            suggestions[0] = (
+                "Improve the script by clarifying the plot, sharpening dialogue, "
+                "and giving characters stronger motivations."
+            )
+
     else:
+
         heading = "Explore the mixed or neutral reaction further"
+
         suggestions = [
             "Mention the one element that worked best and the one element that needs the most improvement.",
             "Compare the film with a similar movie to explain what felt average or familiar.",
@@ -159,19 +416,68 @@ def build_suggestions(label, review_text):
 init_database()
 
 
+# ============================================================
+# TEXT CLEANING
+# ============================================================
+
 def clean_text(text: str) -> str:
     """Clean text while preserving negation and contraction meaning."""
-    text = re.sub(r"\bwon['’]t\b", "will not", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bcan['’]t\b", "can not", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bshan['’]t\b", "shall not", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bain['’]t\b", "is not", text, flags=re.IGNORECASE)
-    text = re.sub(r"\b(\w+)n['’]t\b", r"\1 not", text, flags=re.IGNORECASE)
+
+    text = re.sub(
+        r"\bwon['’]t\b",
+        "will not",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    text = re.sub(
+        r"\bcan['’]t\b",
+        "can not",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    text = re.sub(
+        r"\bshan['’]t\b",
+        "shall not",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    text = re.sub(
+        r"\bain['’]t\b",
+        "is not",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    text = re.sub(
+        r"\b(\w+)n['’]t\b",
+        r"\1 not",
+        text,
+        flags=re.IGNORECASE,
+    )
 
     text = re.sub(r"<.*?>", " ", text)
-    text = re.sub(r"http\S+|www\.\S+", " ", text)
-    text = re.sub(r"[^a-zA-Z\s]", " ", text)
 
-    tokens = re.sub(r"\s+", " ", text).strip().lower().split()
+    text = re.sub(
+        r"http\S+|www\.\S+",
+        " ",
+        text,
+    )
+
+    text = re.sub(
+        r"[^a-zA-Z\s]",
+        " ",
+        text,
+    )
+
+    tokens = (
+        re.sub(r"\s+", " ", text)
+        .strip()
+        .lower()
+        .split()
+    )
 
     negated = [
         f"neg_{tokens[index + 1]}"
@@ -182,149 +488,745 @@ def clean_text(text: str) -> str:
     return " ".join(tokens + negated)
 
 
+# ============================================================
+# CONFIDENCE LABEL
+# ============================================================
+
 def confidence_label(label: str, probability: float) -> str:
+
     if label == "Neutral":
         return "Neutral"
+
     if probability >= 0.90:
         return "Very High"
+
     if probability >= 0.75:
         return "High"
+
     return "Moderate"
 
 
+# ============================================================
+# NEGATION DETECTION
+# ============================================================
+
 def has_negated_positive_opinion(review_text: str) -> bool:
-    """Recognize concise phrases the statistical model can otherwise misread."""
-    normalized = re.sub(r"\b(\w+)[’']t\b", r"\1 not", review_text)
-    return bool(NEGATED_POSITIVE_PATTERN.search(normalized))
+    """Recognize phrases such as 'not good'."""
+    normalized = re.sub(
+        r"\b(\w+)[’']t\b",
+        r"\1 not",
+        review_text,
+    )
+
+    return bool(
+        NEGATED_POSITIVE_PATTERN.search(normalized)
+    )
 
 
 def has_negated_negative_opinion(review_text: str) -> bool:
-    """Recognize qualified criticism such as 'not bad' or 'not terrible'."""
-    normalized = re.sub(r"\b(\w+)[’']t\b", r"\1 not", review_text)
-    return bool(NEGATED_NEGATIVE_PATTERN.search(normalized))
+    """Recognize phrases such as 'not bad'."""
+    normalized = re.sub(
+        r"\b(\w+)[’']t\b",
+        r"\1 not",
+        review_text,
+    )
 
+    return bool(
+        NEGATED_NEGATIVE_PATTERN.search(normalized)
+    )
+
+
+# ============================================================
+# NEUTRAL DETECTION
+# ============================================================
+
+def has_neutral_expression(review_text: str) -> bool:
+    """Detect common phrases that indicate a neutral reaction."""
+
+    normalized = re.sub(
+        r"\s+",
+        " ",
+        review_text.lower(),
+    ).strip()
+
+    return any(
+        phrase in normalized
+        for phrase in NEUTRAL_PHRASES
+    )
+
+
+# ============================================================
+# SENTIMENT STRENGTH
+# ============================================================
+
+def calculate_sentiment_strength(text):
+    """
+    Estimate positive and negative strength in a text fragment.
+
+    Strong sentiment words receive additional weight.
+    Negated words are reversed.
+    """
+
+    normalized = text.lower()
+
+    words = re.findall(
+        r"[a-zA-Z]+",
+        normalized,
+    )
+
+    positive_score = 0.0
+    negative_score = 0.0
+
+    for index, word in enumerate(words):
+
+        previous_word = (
+            words[index - 1]
+            if index > 0
+            else ""
+        )
+
+        is_negated = previous_word in NEGATION_WORDS
+
+        if word in POSITIVE_WORDS:
+
+            weight = (
+                2.0
+                if word in STRONG_POSITIVE_WORDS
+                else 1.0
+            )
+
+            if is_negated:
+                negative_score += weight
+
+            else:
+                positive_score += weight
+
+        elif word in NEGATIVE_WORDS:
+
+            weight = (
+                2.0
+                if word in STRONG_NEGATIVE_WORDS
+                else 1.0
+            )
+
+            if is_negated:
+                positive_score += weight
+
+            else:
+                negative_score += weight
+
+    return positive_score, negative_score
+
+
+# ============================================================
+# MIXED SENTIMENT ANALYZER
+# ============================================================
+
+def analyze_mixed_sentiment(review_text):
+    """
+    Analyze mixed sentiment using sentiment strength on both
+    sides of a contrast connector.
+    """
+
+    normalized = review_text.lower()
+
+    connector_match = None
+
+    for connector in MIXED_CONNECTORS:
+        match = re.search(
+            rf"\b{re.escape(connector)}\b",
+            normalized
+        )
+
+        if match:
+            connector_match = match
+            break
+
+    if connector_match is None:
+        return None
+
+    left = normalized[:connector_match.start()].strip()
+    right = normalized[connector_match.end():].strip()
+
+    if not left or not right:
+        return None
+
+    left_positive, left_negative = calculate_sentiment_strength(left)
+    right_positive, right_negative = calculate_sentiment_strength(right)
+
+    total_positive = left_positive + right_positive
+    total_negative = left_negative + right_negative
+
+    if total_positive == 0 and total_negative == 0:
+        return None
+
+    # Only positive opinion
+    if total_positive > 0 and total_negative == 0:
+        return "Positive", 0.70
+
+    # Only negative opinion
+    if total_negative > 0 and total_positive == 0:
+        return "Negative", 0.70
+
+    # --------------------------------------------------------
+    # BOTH SIDES CONTAIN SENTIMENT
+    # --------------------------------------------------------
+
+    # Strong positive + strong negative = genuinely mixed
+    if (
+        total_positive >= 2
+        and total_negative >= 2
+    ):
+        return "Neutral", 0.65
+
+    # Positive is clearly stronger
+    if total_positive >= total_negative * 1.8:
+        return "Positive", 0.72
+
+    # Negative is clearly stronger
+    if total_negative >= total_positive * 1.8:
+        return "Negative", 0.72
+
+    # Otherwise sentiment is reasonably balanced
+    return "Neutral", 0.65
+# ============================================================
+# LEGACY MIXED DETECTOR
+# ============================================================
+
+def has_mixed_sentiment(review_text: str) -> bool:
+    """
+    Basic mixed-sentiment detector retained for compatibility.
+    """
+
+    normalized = review_text.lower()
+
+    has_positive = any(
+        re.search(
+            rf"\b{re.escape(word)}\b",
+            normalized,
+        )
+        for word in POSITIVE_WORDS
+    )
+
+    has_negative = any(
+        re.search(
+            rf"\b{re.escape(word)}\b",
+            normalized,
+        )
+        for word in NEGATIVE_WORDS
+    )
+
+    has_connector = any(
+        re.search(
+            rf"\b{re.escape(word)}\b",
+            normalized,
+        )
+        for word in MIXED_CONNECTORS
+    )
+
+    return (
+        has_positive
+        and has_negative
+        and has_connector
+    )
+
+
+# ============================================================
+# THEMES
+# ============================================================
 
 def detect_review_themes(review_text: str) -> list[str]:
-    """Return the movie-making areas explicitly mentioned in a review."""
-    words = set(re.findall(r"[a-zA-Z]+", review_text.lower()))
+
+    words = set(
+        re.findall(
+            r"[a-zA-Z]+",
+            review_text.lower(),
+        )
+    )
+
     themes = [
-        theme for theme, keywords in REVIEW_THEMES.items()
+        theme
+        for theme, keywords in REVIEW_THEMES.items()
         if words.intersection(keywords)
     ]
+
     return themes or ["Overall experience"]
 
+
+def extract_influential_words(review_text: str):
+    words = re.findall(r"[a-zA-Z]+", review_text.lower())
+    influential = []
+    seen = set()
+
+    for w in words:
+        if w in seen:
+            continue
+        if w in POSITIVE_WORDS or w in STRONG_POSITIVE_WORDS:
+            influential.append({"word": w, "type": "positive", "label": f"+ {w}"})
+            seen.add(w)
+        elif w in NEGATIVE_WORDS or w in STRONG_NEGATIVE_WORDS:
+            influential.append({"word": w, "type": "negative", "label": f"- {w}"})
+            seen.add(w)
+
+    if not influential:
+        for w in words:
+            if len(w) > 4 and w not in STOP_WORDS and w not in seen:
+                influential.append({"word": w, "type": "neutral", "label": f"• {w}"})
+                seen.add(w)
+            if len(influential) >= 3:
+                break
+
+    return influential[:6]
+
+
+def get_sentence_count(text: str) -> int:
+    sentences = [s.strip() for s in re.split(r"[.!?]+", text) if s.strip()]
+    return len(sentences) if sentences else 1
+
+
+# ============================================================
+# HOME
+# ============================================================
 
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
 
 
+# ============================================================
+# PREDICTION
+# ============================================================
+
 @app.route("/predict", methods=["POST"])
 def predict():
-    review_text = request.form.get("review_text", "").strip()
+
+    if request.is_json:
+        data = request.get_json(silent=True) or {}
+        review_text = data.get("review_text", "").strip()
+    else:
+        review_text = request.form.get("review_text", "").strip()
+
+    is_ajax = (
+        request.is_json
+        or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or "application/json" in request.headers.get("Accept", "")
+    )
 
     if not review_text:
+        if is_ajax:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Please write a review before analyzing.",
+                    }
+                ),
+                400,
+            )
+
         return render_template(
             "index.html",
             error="Please write a review before analyzing.",
         )
 
     review_text = review_text[:5000]
-    X = vectorizer.transform([clean_text(review_text)])
+
+    # ========================================================
+    # 1. MODEL PREDICTION
+    # ========================================================
+
+    cleaned_review = clean_text(
+        review_text
+    )
+
+    X = vectorizer.transform(
+        [cleaned_review]
+    )
+
     proba = model.predict_proba(X)[0]
 
-    class_probabilities = dict(zip(model.classes_, proba))
-    predicted_class = max(class_probabilities, key=class_probabilities.get)
-    max_p = float(class_probabilities[predicted_class])
-    # Supports both the new string labels and an older already-loaded binary
-    # model, which used 0 for negative and 1 for positive.
-    if isinstance(predicted_class, str):
-        label = predicted_class.title()
-    else:
-        label = "Positive" if int(predicted_class) == 1 else "Negative"
+    class_probabilities = dict(
+        zip(
+            model.classes_,
+            proba,
+        )
+    )
 
-    # A short phrase such as "not excellent" often has too little context for
-    # the trained TF-IDF model. Preserve the negation's actual meaning.
-    has_negated_positive = has_negated_positive_opinion(review_text)
-    has_negated_negative = has_negated_negative_opinion(review_text)
-    if has_negated_positive and has_negated_negative:
+    predicted_class = max(
+        class_probabilities,
+        key=class_probabilities.get,
+    )
+
+    max_p = float(
+        class_probabilities[predicted_class]
+    )
+
+    # ========================================================
+    # LABEL
+    # ========================================================
+
+    if isinstance(predicted_class, str):
+
+        label = predicted_class.title()
+
+    else:
+
+        label = (
+            "Positive"
+            if int(predicted_class) == 1
+            else "Negative"
+        )
+
+    # ========================================================
+    # 2. POSITIVE / NEGATIVE PROBABILITIES
+    # ========================================================
+
+    positive_p = 0.0
+    negative_p = 0.0
+
+    for cls, probability in class_probabilities.items():
+
+        cls_name = str(cls).lower()
+
+        if cls_name == "positive" or cls == 1:
+
+            positive_p = float(probability)
+
+        elif cls_name == "negative" or cls == 0:
+
+            negative_p = float(probability)
+
+    margin = abs(
+        positive_p - negative_p
+    )
+
+    # ========================================================
+    # 3. LOW CONFIDENCE
+    # ========================================================
+
+    LOW_CONFIDENCE_THRESHOLD = 0.60
+    LOW_MARGIN_THRESHOLD = 0.10
+
+    if (
+        max_p < LOW_CONFIDENCE_THRESHOLD
+        or margin < LOW_MARGIN_THRESHOLD
+    ):
+
+        label = "Neutral"
+
+        max_p = max(
+            positive_p,
+            negative_p,
+        )
+
+    # ========================================================
+    # 4. NEGATION
+    # ========================================================
+
+    has_negated_positive = (
+        has_negated_positive_opinion(
+            review_text
+        )
+    )
+
+    has_negated_negative = (
+        has_negated_negative_opinion(
+            review_text
+        )
+    )
+
+    if (
+        has_negated_positive
+        and has_negated_negative
+    ):
+
         label = "Neutral"
         max_p = 0.65
+
     elif has_negated_positive:
+
         label = "Negative"
         max_p = 0.75
+
     elif has_negated_negative:
+
+        label = "Positive"
+        max_p = 0.65
+
+    # ========================================================
+    # 5. NEUTRAL EXPRESSIONS
+    # ========================================================
+
+    neutral_expression = (
+        has_neutral_expression(
+            review_text
+        )
+    )
+
+    if neutral_expression:
+
         label = "Neutral"
         max_p = 0.65
 
-    confidence_pct = round(max_p * 100, 1)
-    analysis_id = save_analysis(review_text, label, confidence_pct)
+    # ========================================================
+    # 6. IMPROVED MIXED SENTIMENT
+    # ========================================================
+
+    mixed_result = analyze_mixed_sentiment(
+        review_text
+    )
+
+    if mixed_result is not None:
+
+        mixed_label, mixed_confidence = (
+            mixed_result
+        )
+
+        # ----------------------------------------------------
+        # Only override the model when there is genuine
+        # evidence of mixed sentiment.
+        # ----------------------------------------------------
+
+        if mixed_label == "Neutral":
+
+            label = "Neutral"
+            max_p = mixed_confidence
+
+        elif mixed_label == "Positive":
+
+            # Override a strongly negative prediction only
+            # when the positive side clearly dominates.
+            if label == "Negative":
+
+                label = "Positive"
+                max_p = mixed_confidence
+
+        elif mixed_label == "Negative":
+
+            # Override a strongly positive prediction only
+            # when the negative side clearly dominates.
+            if label == "Positive":
+
+                label = "Negative"
+                max_p = mixed_confidence
+
+    # ========================================================
+    # 7. SAVE RESULT
+    # ========================================================
+
+    confidence_pct = round(
+        max_p * 100,
+        1,
+    )
+
+    analysis_id = save_analysis(
+        review_text,
+        label,
+        confidence_pct,
+    )
+
+    word_count = len(review_text.split())
+    char_count = len(review_text)
+    sentence_count = get_sentence_count(review_text)
+    strength = confidence_label(label, max_p)
+    themes = detect_review_themes(review_text)
+    influential = extract_influential_words(review_text)
+
+    positive_pct = round(positive_p * 100, 1)
+    negative_pct = round(negative_p * 100, 1)
+
+    if label == "Positive":
+        if positive_pct < 50.0:
+            positive_pct = confidence_pct
+            negative_pct = round(max(0.0, 100.0 - positive_pct), 1)
+        headline = "The review carries a positive emotional signal."
+        emoji = "😊"
+    elif label == "Negative":
+        if negative_pct < 50.0:
+            negative_pct = confidence_pct
+            positive_pct = round(max(0.0, 100.0 - negative_pct), 1)
+        headline = "The review carries a critical or disappointed signal."
+        emoji = "🙁"
+    else:
+        headline = "The review contains a balanced or mixed feeling."
+        emoji = "😐"
+        if positive_pct == 0 and negative_pct == 0:
+            positive_pct = 50.0
+            negative_pct = 50.0
+
+    cleaned_preview = cleaned_review if len(cleaned_review) <= 120 else cleaned_review[:117] + "..."
+
+    # ========================================================
+    # 8. RESULT RESPONSE
+    # ========================================================
+
+    if is_ajax:
+        return jsonify(
+            {
+                "success": True,
+                "analysis_id": analysis_id,
+                "review_text": review_text,
+                "cleaned_preview": cleaned_preview,
+                "word_count": word_count,
+                "char_count": char_count,
+                "sentence_count": sentence_count,
+                "engine": ENGINE_NAME,
+                "label": label,
+                "emoji": emoji,
+                "headline": headline,
+                "positive_pct": positive_pct,
+                "negative_pct": negative_pct,
+                "influential_words": influential,
+                "colors": COLOR_MAP[label],
+                "confidence_pct": confidence_pct,
+                "confidence_strength": strength,
+                "review_themes": themes,
+                "suggestions_url": f"/suggestions/{analysis_id}" if analysis_id else None,
+            }
+        )
 
     return render_template(
-        "result.html",
+        "index.html",
         analysis_id=analysis_id,
         review_text=review_text,
-        word_count=len(review_text.split()),
+        cleaned_preview=cleaned_preview,
+        word_count=word_count,
+        char_count=char_count,
+        sentence_count=sentence_count,
         engine=ENGINE_NAME,
         label=label,
+        emoji=emoji,
+        headline=headline,
+        positive_pct=positive_pct,
+        negative_pct=negative_pct,
+        influential_words=influential,
         colors=COLOR_MAP[label],
         confidence_pct=confidence_pct,
-        confidence_strength=confidence_label(label, max_p),
-        review_themes=detect_review_themes(review_text),
+        confidence_strength=strength,
+        review_themes=themes,
     )
 
 
-@app.route("/suggestions/<int:analysis_id>", methods=["GET"])
+# ============================================================
+# SUGGESTIONS
+# ============================================================
+
+@app.route(
+    "/suggestions/<int:analysis_id>",
+    methods=["GET"],
+)
 def suggestions(analysis_id):
+
     with get_database_connection() as connection:
+
         analysis = connection.execute(
-            "SELECT * FROM review_history WHERE id = ?", (analysis_id,)
+            "SELECT * FROM review_history WHERE id = ?",
+            (analysis_id,),
         ).fetchone()
 
     if analysis is None:
         abort(404)
 
-    heading, recommendation_list = build_suggestions(
-        analysis["label"], analysis["review_text"]
+    heading, recommendation_list = (
+        build_suggestions(
+            analysis["label"],
+            analysis["review_text"],
+        )
     )
+
     return render_template(
         "suggestions.html",
         analysis=analysis,
         heading=heading,
         suggestions=recommendation_list,
-        colors=COLOR_MAP[analysis["label"]],
+        colors=COLOR_MAP[
+            analysis["label"]
+        ],
     )
 
 
-@app.route("/history", methods=["GET"])
+# ============================================================
+# HISTORY
+# ============================================================
+
+@app.route(
+    "/history",
+    methods=["GET"],
+)
 def history():
+
     with get_database_connection() as connection:
+
         analyses = connection.execute(
-            "SELECT * FROM review_history ORDER BY id DESC LIMIT 100"
-        ).fetchall()
-        count_rows = connection.execute(
-            "SELECT label, COUNT(*) AS total FROM review_history GROUP BY label"
+            """
+            SELECT *
+            FROM review_history
+            ORDER BY id DESC
+            LIMIT 100
+            """
         ).fetchall()
 
-    overview = {"Positive": 0, "Neutral": 0, "Negative": 0}
-    overview.update({row["label"]: row["total"] for row in count_rows})
+        count_rows = connection.execute(
+            """
+            SELECT label, COUNT(*) AS total
+            FROM review_history
+            GROUP BY label
+            """
+        ).fetchall()
+
+    overview = {
+        "Positive": 0,
+        "Neutral": 0,
+        "Negative": 0,
+    }
+
+    overview.update(
+        {
+            row["label"]: row["total"]
+            for row in count_rows
+        }
+    )
+
+    total = sum(overview.values())
 
     return render_template(
-        "history.html", analyses=analyses, colors=COLOR_MAP, overview=overview
+        "history.html",
+        analyses=analyses,
+        colors=COLOR_MAP,
+        overview=overview,
+        total=total,
     )
 
 
-@app.route("/analytics", methods=["GET"])
+# ============================================================
+# ANALYTICS
+# ============================================================
+
+@app.route(
+    "/analytics",
+    methods=["GET"],
+)
 def analytics():
     """Show visual summaries of saved review analyses."""
+
     with get_database_connection() as connection:
         analyses = connection.execute(
-            "SELECT review_text, label, confidence_pct FROM review_history ORDER BY id DESC"
+            """
+            SELECT id, review_text, label, confidence_pct, created_at
+            FROM review_history
+            ORDER BY id DESC
+            """
         ).fetchall()
 
-    counts = {"Positive": 0, "Neutral": 0, "Negative": 0}
+    counts = {
+        "Positive": 0,
+        "Neutral": 0,
+        "Negative": 0,
+    }
+
     theme_counts = Counter()
     total_confidence = 0.0
+
     for analysis in analyses:
         counts[analysis["label"]] = counts.get(analysis["label"], 0) + 1
         total_confidence += analysis["confidence_pct"]
@@ -335,9 +1237,21 @@ def analytics():
         label: round((count / total) * 100, 1) if total else 0
         for label, count in counts.items()
     }
-    average_confidence = round(total_confidence / total, 1) if total else 0
-    top_themes = theme_counts.most_common(5)
+    average_confidence = (
+        round(total_confidence / total, 1) if total else 0
+    )
+    top_themes = theme_counts.most_common(6)
     max_theme_count = top_themes[0][1] if top_themes else 1
+    recent_analyses = analyses[:6]
+
+    metrics_path = os.path.join(BASE_DIR, "model_metrics.json")
+    model_metrics = None
+    if os.path.exists(metrics_path):
+        try:
+            with open(metrics_path, "r", encoding="utf-8") as f:
+                model_metrics = json.load(f)
+        except Exception:
+            model_metrics = None
 
     return render_template(
         "analytics.html",
@@ -347,30 +1261,75 @@ def analytics():
         average_confidence=average_confidence,
         top_themes=top_themes,
         max_theme_count=max_theme_count,
+        recent_analyses=recent_analyses,
+        model_metrics=model_metrics,
     )
 
 
-@app.route("/booking", methods=["GET"])
+# ============================================================
+# BOOKING
+# ============================================================
+
+@app.route(
+    "/booking",
+    methods=["GET"],
+)
 def booking():
     """Show the in-app ticket-booking handoff page."""
-    return render_template("booking.html")
+    return render_template(
+        "booking.html"
+    )
 
 
-@app.route("/download_report", methods=["POST"])
+# ============================================================
+# DOWNLOAD REPORT
+# ============================================================
+
+@app.route(
+    "/download_report",
+    methods=["POST"],
+)
 def download_report():
-    review_text = request.form.get("review_text", "")
-    label = request.form.get("label", "")
-    engine = request.form.get("engine", ENGINE_NAME)
-    word_count = request.form.get("word_count", "")
-    confidence_strength = request.form.get("confidence_strength", "")
-    confidence_pct = request.form.get("confidence_pct", "")
+
+    review_text = request.form.get(
+        "review_text",
+        "",
+    )
+
+    label = request.form.get(
+        "label",
+        "",
+    )
+
+    engine = request.form.get(
+        "engine",
+        ENGINE_NAME,
+    )
+
+    word_count = request.form.get(
+        "word_count",
+        "",
+    )
+
+    confidence_strength = request.form.get(
+        "confidence_strength",
+        "",
+    )
+
+    confidence_pct = request.form.get(
+        "confidence_pct",
+        "",
+    )
 
     lines = [
         "=" * 60,
         "MARQUEE — MOVIE REVIEW SENTIMENT ANALYSIS REPORT",
         "=" * 60,
         "",
-        f"Generated : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        (
+            f"Generated : "
+            f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        ),
         f"Engine    : {engine}",
         "",
         f"Review: {review_text}",
@@ -384,10 +1343,15 @@ def download_report():
         "\n".join(lines),
         mimetype="text/plain",
         headers={
-            "Content-Disposition": "attachment; filename=sentiment_report.txt"
+            "Content-Disposition":
+                "attachment; filename=sentiment_report.txt"
         },
     )
 
+
+# ============================================================
+# RUN APPLICATION
+# ============================================================
 
 if __name__ == "__main__":
     app.run(debug=True)

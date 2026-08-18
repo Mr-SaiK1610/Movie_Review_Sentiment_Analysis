@@ -1,49 +1,282 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analysis History — ReelTalk</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=9">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analysis History — MovieSense</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=36">
 </head>
-<body class="result-body">
-    <div class="page-wrapper">
-        <header class="result-header">
-            <a href="{{ url_for('index') }}" class="back-link">← Analyze a New Review</a>
-            <h1 class="result-title">Analysis History</h1>
-            <p class="result-subtitle">Your most recent movie-review sentiment analyses</p>
-        </header>
+<body>
+<div class="announcement-bar">Celebrating the magic of Indian cinema · Bollywood · Tollywood · Kollywood · Mollywood · Sandalwood</div>
 
-        <main class="result-container">
-            <section class="history-overview">
-                <article><span>Positive</span><strong>{{ overview['Positive'] }}</strong></article>
-                <article><span>Neutral</span><strong>{{ overview['Neutral'] }}</strong></article>
-                <article><span>Negative</span><strong>{{ overview['Negative'] }}</strong></article>
-            </section>
-            {% if analyses %}
-            <section class="history-list">
-                {% for analysis in analyses %}
-                <article class="history-card frame-corners">
-                    <div class="history-card-top">
-                        <span class="history-label" style="color: {{ colors[analysis['label']].text }};">{{ analysis['label'] }}</span>
-                        <span>{{ analysis['confidence_pct'] }}% · {{ analysis['created_at'] }}</span>
-                    </div>
-                    <p>{{ analysis['review_text'] }}</p>
-                    <a href="{{ url_for('suggestions', analysis_id=analysis['id']) }}" class="btn btn-outline">View Suggestions</a>
-                </article>
-                {% endfor %}
-            </section>
-            {% else %}
-            <section class="empty-history frame-corners">
-                <h2>No analyses yet</h2>
-                <p>Analyze your first movie review, and it will appear here.</p>
-                <a href="{{ url_for('index') }}" class="btn btn-maroon">Analyze a Review</a>
-            </section>
-            {% endif %}
-        </main>
+<header class="site-nav">
+  <div class="nav-inner">
+    <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark"><img src="{{ url_for('static', filename='images/moviesense-logo.jpg') }}" alt="MovieSense Logo" class="brand-logo-img"></span><span>Movie<span>Sense</span></span></a>
+    <div class="nav-right-group">
+      <nav class="nav-links">
+        <a href="{{ url_for('index') }}">Home</a>
+        <a class="active" href="{{ url_for('history') }}">History</a>
+        <a href="{{ url_for('analytics') }}">Analytics</a>
+      </nav>
+      <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle dark/light mode" type="button" title="Switch theme">
+        <span class="theme-toggle-icon theme-icon-sun" aria-hidden="true">☀️</span>
+        <span class="theme-toggle-icon theme-icon-moon" aria-hidden="true">🌙</span>
+      </button>
+      <div class="nav-menu-wrapper">
+        <button class="nav-menu-btn" id="navMenuBtn" aria-label="Toggle navigation menu" aria-expanded="false" type="button">
+          <span class="menu-icon-bars" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+          <span>Menu</span>
+        </button>
+        <div class="nav-dropdown" id="navDropdown" aria-hidden="true">
+          <div class="nav-dropdown-header">
+            <span>Quick Navigation</span>
+          </div>
+          <a href="{{ url_for('index') }}" class="nav-dropdown-item">
+            <span class="dropdown-item-icon">⌂</span>
+            <div class="dropdown-item-text">
+              <strong>Home</strong>
+              <small>Explore movies & reviews</small>
+            </div>
+          </a>
+          <a href="{{ url_for('analytics') }}" class="nav-dropdown-item">
+            <span class="dropdown-item-icon">◔</span>
+            <div class="dropdown-item-text">
+              <strong>Analytics</strong>
+              <small>Sentiment breakdown & stats</small>
+            </div>
+          </a>
+          <a href="{{ url_for('history') }}" class="nav-dropdown-item">
+            <span class="dropdown-item-icon">◷</span>
+            <div class="dropdown-item-text">
+              <strong>History</strong>
+              <small>Past decoded reviews</small>
+            </div>
+          </a>
+          <a href="{{ url_for('index') }}#analyze" class="nav-dropdown-item nav-dropdown-analyze">
+            <span class="dropdown-item-icon">＋</span>
+            <div class="dropdown-item-text">
+              <strong>New Analyze</strong>
+              <small>Decode a new movie review</small>
+            </div>
+          </a>
+        </div>
+      </div>
     </div>
+  </div>
+</header>
+
+<main>
+  <!-- Hero Section -->
+  <section class="history-hero-section">
+    <div class="container">
+      <div class="history-hero-inner">
+        <div class="hero-kicker"><span></span> THE ARCHIVE · PAST ANALYSES</div>
+        <h1 class="hero-title">Review history. <em>Logged & decoded.</em></h1>
+        <p class="hero-lede">A comprehensive log of all Indian movie review sentiments, confidence levels, and NLP predictions analyzed in your session.</p>
+      </div>
+    </div>
+  </section>
+
+  {% if analyses %}
+  <section class="history-main">
+    <div class="container">
+
+      <!-- 4 Overview Metric Boxes -->
+      <div class="history-stats-bar">
+        <article class="history-stat-box">
+          <div class="stat-box-info">
+            <span>Total Logged</span>
+            <strong>{{ total }}</strong>
+          </div>
+          <span class="metric-card-badge badge-total">All Time</span>
+        </article>
+
+        <article class="history-stat-box">
+          <div class="stat-box-info">
+            <span>Positive</span>
+            <strong style="color: #28c76f;">{{ overview['Positive'] }}</strong>
+          </div>
+          <span class="metric-card-badge badge-positive">Favorable</span>
+        </article>
+
+        <article class="history-stat-box">
+          <div class="stat-box-info">
+            <span>Neutral / Mixed</span>
+            <strong style="color: #e5aa24;">{{ overview['Neutral'] }}</strong>
+          </div>
+          <span class="metric-card-badge badge-neutral">Balanced</span>
+        </article>
+
+        <article class="history-stat-box">
+          <div class="stat-box-info">
+            <span>Negative</span>
+            <strong style="color: #ea5455;">{{ overview['Negative'] }}</strong>
+          </div>
+          <span class="metric-card-badge badge-negative">Critical</span>
+        </article>
+      </div>
+
+      <!-- Realtime Filter & Search Toolbar -->
+      <div class="history-toolbar">
+        <div class="history-search-wrap">
+          <span>🔍</span>
+          <input type="text" id="historySearchInput" placeholder="Search keywords in saved reviews..." aria-label="Search reviews">
+        </div>
+        <div class="history-filter-pills">
+          <button type="button" class="filter-btn active" data-filter="all">All ({{ total }})</button>
+          <button type="button" class="filter-btn" data-filter="positive">Positive ({{ overview['Positive'] }})</button>
+          <button type="button" class="filter-btn" data-filter="neutral">Neutral ({{ overview['Neutral'] }})</button>
+          <button type="button" class="filter-btn" data-filter="negative">Negative ({{ overview['Negative'] }})</button>
+        </div>
+      </div>
+
+      <!-- History Grid -->
+      <div class="history-grid" id="historyGrid">
+        {% for analysis in analyses %}
+        <article class="history-archive-card" data-sentiment="{{ analysis['label']|lower }}" data-text="{{ analysis['review_text']|lower }}">
+          <div>
+            <div class="archive-card-top">
+              <span class="ai-sentiment-pill pill-{{ analysis['label']|lower }}" style="margin:0;">{{ analysis['label'] }}</span>
+              <span style="font-size:12px;font-weight:800;color:var(--saffron);">{{ analysis['confidence_pct'] }}% confidence</span>
+            </div>
+            <p class="archive-card-text">“{{ analysis['review_text'] }}”</p>
+          </div>
+          <div class="archive-card-meta">
+            <span>🕒 {{ analysis['created_at'] }}</span>
+            <a href="{{ url_for('suggestions', analysis_id=analysis['id']) }}" class="archive-card-link">Inspect Insights →</a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+
+      <!-- No Search Results Found Message -->
+      <div id="noResultsMsg" style="display:none; text-align:center; padding: 40px 20px; color: var(--muted);">
+        <p style="font-size:16px; font-weight:700; color:var(--text);">No matching reviews found</p>
+        <p style="font-size:13px;">Try typing a different keyword or switching the sentiment filter.</p>
+      </div>
+
+      <!-- Bottom Cinematic CTA -->
+      <section class="analytics-cta-banner">
+        <div class="analytics-cta-content">
+          <span class="section-kicker" style="color: var(--saffron);">CONTINUE THE JOURNEY</span>
+          <h2>Analyze another movie review</h2>
+          <p>Test the AI sentiment classifier with another perspective from Indian cinema.</p>
+        </div>
+        <a href="{{ url_for('index') }}#analyze" class="btn btn-saffron" style="font-size: 14px; padding: 14px 28px;">＋ Analyze New Review</a>
+      </section>
+
+    </div>
+  </section>
+
+  {% else %}
+  <section class="history-main">
+    <div class="container" style="max-width: 680px; text-align: center; margin: 40px auto 80px;">
+      <article class="analytics-panel-card" style="padding: 50px 30px;">
+        <span style="font-size: 50px; display: block; margin-bottom: 14px;">🎞️</span>
+        <span class="section-kicker">EMPTY REEL</span>
+        <h2 style="font-size: 32px; margin: 8px 0 14px;">No reviews logged yet.</h2>
+        <p style="color: var(--muted); font-size: 14px; margin-bottom: 24px;">Your past analyzed reviews, confidence statistics, and detailed linguistic insights will appear here in chronological order.</p>
+        <a href="{{ url_for('index') }}#analyze" class="btn btn-saffron" style="font-size: 14px; padding: 12px 26px;">Analyze First Review →</a>
+      </article>
+    </div>
+  </section>
+  {% endif %}
+</main>
+
+<div class="film-ticker">
+  <div class="ticker-track">
+    <span>Lights</span><b>✦</b><span>Camera</span><b>✦</b><span>Action</span><b>✦</b>
+    <span>Read the Review</span><b>✦</b><span>Find the Feeling</span><b>✦</b>
+    <span>Lights</span><b>✦</b><span>Camera</span><b>✦</b><span>Action</span><b>✦</b>
+  </div>
+</div>
+<footer class="result-footer">MOVIESENSE · AI FOR INDIAN CINEMA · REVIEW ARCHIVE</footer>
+
+<script>
+// Navigation Menu Dropdown Toggle & Click-Outside Handler
+const navMenuBtn = document.getElementById('navMenuBtn');
+const navDropdown = document.getElementById('navDropdown');
+if (navMenuBtn && navDropdown) {
+  function toggleNavMenu(show) {
+    const isExpanded = show !== undefined ? show : !navDropdown.classList.contains('show');
+    navDropdown.classList.toggle('show', isExpanded);
+    navMenuBtn.classList.toggle('active', isExpanded);
+  }
+  navMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleNavMenu(); });
+  document.addEventListener('click', (e) => { if (!navMenuBtn.contains(e.target) && !navDropdown.contains(e.target)) toggleNavMenu(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleNavMenu(false); });
+}
+
+// Theme Toggle (Dark / Light Mode)
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+function applyTheme(isDark) {
+  if (isDark) {
+    document.body.classList.add('dark-mode');
+    localStorage.setItem('moviesense-theme', 'dark');
+  } else {
+    document.body.classList.remove('dark-mode');
+    localStorage.setItem('moviesense-theme', 'light');
+  }
+}
+if (localStorage.getItem('moviesense-theme') === 'dark') {
+  applyTheme(true);
+}
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener('click', () => {
+    applyTheme(!document.body.classList.contains('dark-mode'));
+  });
+}
+
+// Real-time Search & Sentiment Filter
+const searchInput = document.getElementById('historySearchInput');
+const filterBtns = document.querySelectorAll('.filter-btn');
+const historyCards = document.querySelectorAll('.history-archive-card');
+const noResultsMsg = document.getElementById('noResultsMsg');
+
+let currentFilter = 'all';
+let currentSearch = '';
+
+function filterHistory() {
+  let visibleCount = 0;
+  historyCards.forEach(card => {
+    const cardSentiment = card.getAttribute('data-sentiment') || '';
+    const cardText = card.getAttribute('data-text') || '';
+
+    const matchesSentiment = (currentFilter === 'all' || cardSentiment === currentFilter);
+    const matchesSearch = (!currentSearch || cardText.includes(currentSearch));
+
+    if (matchesSentiment && matchesSearch) {
+      card.style.display = 'flex';
+      visibleCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  if (noResultsMsg) {
+    noResultsMsg.style.display = (visibleCount === 0 && historyCards.length > 0) ? 'block' : 'none';
+  }
+}
+
+if (searchInput) {
+  searchInput.addEventListener('input', (e) => {
+    currentSearch = e.target.value.toLowerCase().trim();
+    filterHistory();
+  });
+}
+
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.getAttribute('data-filter') || 'all';
+    filterHistory();
+  });
+});
+</script>
 </body>
 </html>

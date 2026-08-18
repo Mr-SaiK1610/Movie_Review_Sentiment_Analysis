@@ -1,201 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analysis Result — ReelTalk</title>
- 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
-        rel="stylesheet"
-    >
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=9">
-</head>
- 
-<body class="result-body">
-<div class="page-wrapper">
- 
-    <!-- ====================================================== -->
-    <!-- HEADER -->
-    <!-- ====================================================== -->
-    <header class="result-header result-main-header">
-        <a href="{{ url_for('index') }}" class="back-link">
-            ← Analyze Another Review
-        </a>
- 
-        <h1 class="result-title">The Verdict Is In</h1>
-        <p class="result-subtitle">
-            Here is the detailed sentiment classification for your movie review
-        </p>
-    </header>
- 
-    <!-- ====================================================== -->
-    <!-- MAIN -->
-    <!-- ====================================================== -->
-    <main class="result-container">
- 
-        <!-- ================================================== -->
-        <!-- REVIEW CARD -->
-        <!-- ================================================== -->
-        <section class="review-card ticket frame-corners">
-            <div class="card-label">YOUR REVIEW</div>
- 
-            <p class="review-content">{{ review_text }}</p>
- 
-            <div class="review-meta">
-                <span>{{ word_count }} words</span>
-                <span class="meta-dot">•</span>
-                <span>Engine: {{ engine }}</span>
-                <span class="meta-dot">•</span>
-                <span>TF-IDF + Logistic Regression</span>
-            </div>
-        </section>
-
-        <section class="review-themes">
-            <div>
-                <span class="theme-label">REVIEW THEMES</span>
-                <p>Topics mentioned in your review</p>
-            </div>
-            <div class="theme-chips">
-                {% for theme in review_themes %}
-                <span>{{ theme }}</span>
-                {% endfor %}
-            </div>
-        </section>
-
-        <!-- ================================================== -->
-        <!-- VERDICT -->
-        <!-- ================================================== -->
-        <section
-            class="verdict-card"
-            style="background: {{ colors.bg_soft }}; border-color: {{ colors.border }};"
-        >
-            <div class="verdict-label" style="color: {{ colors.text }};">
-                PREDICTED SENTIMENT
-            </div>
- 
-            <div class="verdict-value" style="color: {{ colors.text }};">
-                {{ label | upper }}
-            </div>
- 
-            <div class="verdict-bar-wrap">
-                <div class="verdict-bar" style="background: {{ colors.text }};"></div>
-            </div>
-        </section>
- 
-        <!-- ================================================== -->
-        <!-- CONFIDENCE -->
-        <!-- ================================================== -->
-        <section class="probability-section">
- 
-            <div class="section-title section-title-centered">
-                <h2>Prediction Confidence</h2>
-                <div class="gold-rule centered"></div>
-            </div>
- 
-            <div class="confidence-callout">
-                <div class="confidence-title">Confidence Level</div>
-                <div class="confidence-value">{{ confidence_pct }}%</div>
-                <div class="confidence-hint">
-                    {% if label == "Neutral" %}
-                        The model didn't confidently lean Positive or Negative —
-                        this usually means the review mixes praise and criticism.
-                    {% else %}
-                        {{ confidence_strength }} confidence, based on the Logistic
-                        Regression model's predicted probability for this review.
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="result-suggestions-link">
-                <div>
-                    <span>AI SUGGESTIONS</span>
-                    <p>Get suggestions tailored to this specific review.</p>
-                </div>
-                <a href="{{ url_for('suggestions', analysis_id=analysis_id) }}" class="btn btn-maroon">View suggestions</a>
-            </div>
-
-        </section>
- 
-        <!-- ================================================== -->
-        <!-- DOWNLOAD REPORT -->
-        <!-- ================================================== -->
-        <section class="report-section frame-corners">
- 
-            <div class="report-copy">
-                <div class="section-title">
-                    <h2>Download Analysis Report</h2>
-                    <div class="gold-rule"></div>
-                </div>
- 
-                <p class="report-description">
-                    Download a complete report containing your review, sentiment
-                    prediction, confidence scores, review statistics, and model
-                    information.
-                </p>
- 
-                <form action="{{ url_for('download_report') }}" method="POST" class="download-form">
- 
-                    <input type="hidden" name="review_text" value="{{ review_text }}">
-                    <input type="hidden" name="label" value="{{ label }}">
-                    <input type="hidden" name="engine" value="{{ engine }}">
-                    <input type="hidden" name="word_count" value="{{ word_count }}">
-                    <input type="hidden" name="confidence_strength" value="{{ confidence_strength }}">
-                    <input type="hidden" name="confidence_pct" value="{{ confidence_pct }}">
- 
-                    <button type="submit" class="btn btn-gold btn-download">
-                        Download Report
-                    </button>
- 
-                </form>
-            </div>
- 
-            <div class="report-visual">
-                <img
-                    src="{{ url_for('static', filename='images/saik.jpg') }}"
-                    alt="Illustration of movie-making equipment, popcorn, and a film reel"
-                >
-            </div>
- 
-        </section>
- 
-        <!-- ================================================== -->
-        <!-- CLOSING CREDITS -->
-        <!-- ================================================== -->
-        <section class="credits-band">
-            <img
-                class="bg-img"
-                src="{{ url_for('static', filename='images/credits-cinema.jpg') }}"
-                alt="A black and white collage of film posters behind a director, captioned Absolute Cinema"
-            >
-            <div class="overlay"></div>
- 
-            <div class="content">
-                <span class="eyebrow">That's a wrap</span>
-                <h2>Every review deserves its own close-up.</h2>
-            </div>
-        </section>
- 
-        <!-- ================================================== -->
-        <!-- ACTIONS -->
-        <!-- ================================================== -->
-        <div class="actions-row">
-            <a href="{{ url_for('index') }}" class="btn btn-maroon btn-wide">
-                ← Analyze Another Review
-            </a>
-        </div>
- 
-    </main>
- 
-    <!-- ====================================================== -->
-    <!-- FOOTER -->
-    <!-- ====================================================== -->
-    <footer class="result-footer">
-        <p>MARQUEE • TF-IDF + Logistic Regression</p>
-    </footer>
- 
-</div>
-</body>
-</html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Verdict — MovieSense</title><link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=20"></head>
+<body class="page-shell">
+<header class="site-nav"><div class="nav-inner"><a class="brand" href="{{ url_for('index') }}"><span class="brand-mark"><img src="{{ url_for('static', filename='images/moviesense-logo.jpg') }}" alt="MovieSense Logo" class="brand-logo-img"></span><span>Movie<span>Sense</span></span></a><nav class="nav-links"><a href="{{ url_for('index') }}">Home</a><a href="{{ url_for('index') }}#analyze">Analyze</a><a href="{{ url_for('history') }}">History</a><a href="{{ url_for('analytics') }}">Analytics</a><a href="{{ url_for('booking') }}">Tickets</a></nav></div></header>
+<section class="result-hero"><div class="result-header"><a href="{{ url_for('index') }}#analyze" class="back-link">← Analyze another review</a><p class="section-kicker">SCENE 02 · THE VERDICT</p><h1 class="result-title">The verdict is in.</h1><p class="result-subtitle">MovieSense has finished reading your review. Here is the sentiment, confidence, and the movie-making themes it picked up.</p></div></section>
+<main class="result-container">
+<section class="review-card">
+  <div class="card-label">YOUR REVIEW</div><p class="review-content">“{{ review_text }}”</p>
+  <div class="review-meta"><span>{{ word_count }} words</span><span>•</span><span>{{ engine }}</span></div>
+</section>
+<section class="review-themes"><div><span class="theme-label">REVIEW THEMES</span><p>Movie elements mentioned in your review</p></div><div class="theme-chips">{% for theme in review_themes %}<span>{{ theme }}</span>{% endfor %}</div></section>
+<section class="verdict-card" style="background:{{ colors.bg_soft }};border-color:{{ colors.border }};">
+  <div class="verdict-label" style="color:{{ colors.text }}">PREDICTED SENTIMENT</div>
+  <div class="verdict-value" style="color:{{ colors.text }}">{{ label|upper }}</div>
+  <div class="verdict-bar-wrap"><div class="verdict-bar" style="background:{{ colors.text }}"></div></div>
+</section>
+<section class="probability-section">
+  <div class="section-title section-title-centered"><p class="section-kicker">THE NUMBERS</p><h2>Prediction confidence</h2><div class="gold-rule"></div></div>
+  <div class="confidence-callout"><div class="confidence-title">Confidence level</div><div class="confidence-value">{{ confidence_pct }}%</div><div class="confidence-hint">{% if label == "Neutral" %}The model did not strongly lean Positive or Negative. Mixed praise and criticism can produce a neutral result.{% else %}{{ confidence_strength }} confidence, based on the model's predicted probability for this review.{% endif %}</div></div>
+  <div class="result-suggestions-link"><div><span>AI-ASSISTED REVIEW INSIGHTS</span><p>Get useful suggestions tailored to this analysis.</p></div><a href="{{ url_for('suggestions', analysis_id=analysis_id) }}" class="btn btn-gold">View Suggestions →</a></div>
+</section>
+<section class="report-section">
+  <div class="report-copy"><p class="section-kicker">TAKE IT WITH YOU</p><h2>Download the report</h2><p class="report-description">Save the review, prediction, confidence, statistics, and model information as a simple text report.</p>
+  <form action="{{ url_for('download_report') }}" method="POST"><input type="hidden" name="review_text" value="{{ review_text }}"><input type="hidden" name="label" value="{{ label }}"><input type="hidden" name="engine" value="{{ engine }}"><input type="hidden" name="word_count" value="{{ word_count }}"><input type="hidden" name="confidence_strength" value="{{ confidence_strength }}"><input type="hidden" name="confidence_pct" value="{{ confidence_pct }}"><button class="btn btn-gold" type="submit">Download Report</button></form></div>
+  <div class="report-visual"><img src="{{ url_for('static', filename='images/ticket-admit-one.jpg') }}" alt="Movie review ticket artwork"></div>
+</section>
+<section class="credits-band"><img class="bg-img" src="{{ url_for('static', filename='images/credits-cinema.jpg') }}" alt="Cinema collage"><div class="overlay"></div><div class="content"><span class="eyebrow">That's a wrap</span><h2>Every review deserves its own close-up.</h2></div></section>
+<div class="actions-row"><a href="{{ url_for('index') }}" class="btn btn-ghost btn-wide">← Analyze Another Review</a><a href="{{ url_for('history') }}" class="btn btn-gold btn-wide">View History</a></div>
+</main>
+<footer class="result-footer">MOVIESENSE · SCENE COMPLETE</footer>
+</body></html>

@@ -1,36 +1,516 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Tickets — ReelTalk</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=9">
+    <title>Tickets & Box Office — MovieSense</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=33">
+    <style>
+        /* Dedicated Booking Page Aesthetics */
+        .booking-page-wrap {
+            padding: 40px 0 90px;
+        }
+
+        .booking-hero-card {
+            position: relative;
+            background: linear-gradient(135deg, #1c1714 0%, #291e18 60%, #3a251b 100%);
+            border: 1px solid rgba(234, 223, 210, 0.18);
+            border-radius: 28px;
+            padding: 48px;
+            color: #fff;
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 40px;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+            margin-bottom: 45px;
+        }
+
+        .booking-hero-card::before {
+            content: "";
+            position: absolute;
+            top: -80px;
+            right: -80px;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(229, 103, 23, 0.22) 0%, rgba(229, 103, 23, 0) 70%);
+            pointer-events: none;
+        }
+
+        .booking-hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .booking-hero-content .section-kicker {
+            color: #ff9e47;
+            letter-spacing: 0.18em;
+            font-size: 11px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .booking-hero-content h1 {
+            font-size: clamp(32px, 4.2vw, 48px);
+            line-height: 1.15;
+            margin: 0 0 16px;
+            color: #fff8f2;
+        }
+
+        .booking-hero-content p {
+            color: #cfc1b6;
+            font-size: 15.5px;
+            line-height: 1.6;
+            margin: 0 0 26px;
+            max-width: 540px;
+        }
+
+        .booking-hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .booking-hero-media {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .ticket-graphic-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 330px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 22px 45px rgba(0, 0, 0, 0.45);
+            transform: rotate(2deg);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .ticket-graphic-wrap:hover {
+            transform: rotate(0deg) scale(1.03);
+        }
+
+        .ticket-graphic-wrap img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Booking Partners Grid */
+        .booking-section-heading {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 35px;
+        }
+
+        .booking-section-heading h2 {
+            font-size: 32px;
+            margin: 8px 0 10px;
+        }
+
+        .booking-section-heading p {
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .partners-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 22px;
+            margin-bottom: 50px;
+        }
+
+        .partner-card {
+            background: #fff;
+            border: 1px solid #eadfd5;
+            border-radius: 22px;
+            padding: 32px 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 6px 20px rgba(75, 39, 20, 0.04);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .partner-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(229, 103, 23, 0.4);
+            box-shadow: 0 18px 40px rgba(229, 103, 23, 0.12);
+        }
+
+        .partner-badge {
+            display: inline-block;
+            align-self: flex-start;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(229, 103, 23, 0.1);
+            color: var(--saffron);
+            margin-bottom: 16px;
+        }
+
+        .partner-card h3 {
+            font-size: 22px;
+            margin: 0 0 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .partner-card p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.55;
+            margin: 0 0 24px;
+            flex-grow: 1;
+        }
+
+        .partner-link-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px 18px;
+            font-size: 13.5px;
+            font-weight: 700;
+            border-radius: 12px;
+            text-decoration: none;
+            background: #fff7ee;
+            color: var(--saffron);
+            border: 1px solid rgba(229, 103, 23, 0.25);
+            transition: all 0.25s ease;
+        }
+
+        .partner-link-btn:hover {
+            background: var(--saffron);
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(229, 103, 23, 0.28);
+        }
+
+        /* Screen Formats / Experience Guide */
+        .experience-guide-box {
+            background: #fdfbf7;
+            border: 1px solid #eadfd5;
+            border-radius: 24px;
+            padding: 40px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            box-shadow: 0 6px 20px rgba(75, 39, 20, 0.04);
+        }
+
+        .guide-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .guide-icon {
+            font-size: 36px;
+            margin-bottom: 14px;
+        }
+
+        .guide-item h4 {
+            font-size: 18px;
+            margin: 0 0 8px;
+        }
+
+        .guide-item p {
+            color: var(--muted);
+            font-size: 13.5px;
+            line-height: 1.55;
+            margin: 0;
+        }
+
+        /* Dark Mode Overrides */
+        body.dark-mode .partner-card {
+            background: #181310;
+            border-color: rgba(234, 223, 210, 0.12);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        body.dark-mode .partner-card:hover {
+            border-color: rgba(229, 103, 23, 0.45);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45), 0 0 20px rgba(229, 103, 23, 0.15);
+        }
+
+        body.dark-mode .partner-link-btn {
+            background: rgba(229, 103, 23, 0.12);
+            border-color: rgba(229, 103, 23, 0.3);
+            color: #ff9e47;
+        }
+
+        body.dark-mode .partner-link-btn:hover {
+            background: var(--saffron);
+            color: #fff;
+        }
+
+        body.dark-mode .experience-guide-box {
+            background: #181310;
+            border-color: rgba(234, 223, 210, 0.12);
+        }
+
+        @media (max-width: 860px) {
+            .booking-hero-card {
+                grid-template-columns: 1fr;
+                padding: 32px 24px;
+                text-align: center;
+            }
+
+            .booking-hero-content p {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .booking-hero-actions {
+                justify-content: center;
+            }
+
+            .partners-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .experience-guide-box {
+                grid-template-columns: 1fr;
+                padding: 28px 20px;
+            }
+        }
+    </style>
 </head>
-<body class="result-body">
-    <div class="page-wrapper booking-page">
-        <header class="result-header">
-            <a href="{{ url_for('index') }}" class="back-link">Back to home</a>
-            <h1 class="result-title">Find your next show.</h1>
-            <p class="result-subtitle">Choose a city and continue to a trusted ticket partner.</p>
-        </header>
-        <main class="result-container">
-            <section class="booking-hero">
-                <img src="{{ url_for('static', filename='images/ticket-admit-one.jpg') }}" alt="Illustrated movie ticket">
-                <div>
-                    <p class="section-kicker">TICKETS</p>
-                    <h2>A good seat is only a few clicks away.</h2>
-                    <p>ReelTalk helps you decide what to watch. Ticket availability and payments are handled securely by our booking partner.</p>
-                    <a href="https://www.district.in/movies/" target="_blank" rel="noopener noreferrer" class="primary-action">Continue to ticket booking <span>→</span></a>
+
+<body>
+    <div class="announcement-bar">Celebrating the magic of Indian cinema · Bollywood · Tollywood · Kollywood · Mollywood
+        · Sandalwood</div>
+
+    <header class="site-nav">
+        <div class="nav-inner">
+            <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark"><img src="{{ url_for('static', filename='images/moviesense-logo.jpg') }}" alt="MovieSense Logo" class="brand-logo-img"></span><span>Movie<span>Sense</span></span></a>
+            <div class="nav-right-group">
+                <nav class="nav-links">
+                    <a href="{{ url_for('index') }}">Home</a>
+                    <a href="{{ url_for('history') }}">History</a>
+                    <a href="{{ url_for('analytics') }}">Analytics</a>
+                    <a class="active" href="{{ url_for('booking') }}">Tickets</a>
+                </nav>
+                <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle dark/light mode" type="button"
+                    title="Switch theme">
+                    <span class="theme-toggle-icon theme-icon-sun" aria-hidden="true">☀️</span>
+                    <span class="theme-toggle-icon theme-icon-moon" aria-hidden="true">🌙</span>
+                </button>
+                <div class="nav-menu-wrapper">
+                    <button class="nav-menu-btn" id="navMenuBtn" aria-label="Toggle navigation menu"
+                        aria-expanded="false" type="button">
+                        <span class="menu-icon-bars" aria-hidden="true">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                        <span>Menu</span>
+                    </button>
+                    <div class="nav-dropdown" id="navDropdown" aria-hidden="true">
+                        <div class="nav-dropdown-header">
+                            <span>Quick Navigation</span>
+                        </div>
+                        <a href="{{ url_for('index') }}" class="nav-dropdown-item">
+                            <span class="dropdown-item-icon">⌂</span>
+                            <div class="dropdown-item-text">
+                                <strong>Home</strong>
+                                <small>Explore movies & reviews</small>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('analytics') }}" class="nav-dropdown-item">
+                            <span class="dropdown-item-icon">◔</span>
+                            <div class="dropdown-item-text">
+                                <strong>Analytics</strong>
+                                <small>Sentiment breakdown & stats</small>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('history') }}" class="nav-dropdown-item">
+                            <span class="dropdown-item-icon">◷</span>
+                            <div class="dropdown-item-text">
+                                <strong>History</strong>
+                                <small>Past decoded reviews</small>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('index') }}#analyze" class="nav-dropdown-item nav-dropdown-analyze">
+                            <span class="dropdown-item-icon">＋</span>
+                            <div class="dropdown-item-text">
+                                <strong>New Analyze</strong>
+                                <small>Decode a new movie review</small>
+                            </div>
+                        </a>
+                    </div>
                 </div>
-            </section>
-            <section class="booking-note">
-                <h2>Before you go</h2>
-                <p>Check showtimes, language, screen format, and theatre location before completing your booking.</p>
-            </section>
-        </main>
+            </div>
+        </div>
+    </header>
+
+    <main class="container booking-page-wrap">
+        <a href="{{ url_for('index') }}" class="back-link" style="display:inline-flex;margin-bottom:24px;">← Back to
+            MovieSense</a>
+
+        <!-- Top Cinema Box Office Hero -->
+        <section class="booking-hero-card">
+            <div class="booking-hero-content">
+                <p class="section-kicker">THE BOX OFFICE</p>
+                <h1>Find your next big-screen experience.</h1>
+                <p>MovieSense decoded your review feelings. Ready for your next cinematic journey? Browse live
+                    showtimes, screen formats, and book directly with trusted ticketing partners.</p>
+                <div class="booking-hero-actions">
+                    <a href="https://in.bookmyshow.com" target="_blank" rel="noopener noreferrer"
+                        class="btn btn-saffron">Browse on BookMyShow 🎟️</a>
+                    <a href="https://www.district.in/movies/" target="_blank" rel="noopener noreferrer"
+                        class="btn btn-gold"
+                        style="background:#fff;color:#231b17;border:1px solid rgba(255,255,255,0.4);">Explore District
+                        →</a>
+                </div>
+            </div>
+            <div class="booking-hero-media">
+                <div class="ticket-graphic-wrap">
+                    <img src="{{ url_for('static', filename='images/ticket-admit-one.jpg') }}"
+                        alt="Vintage cinema admission ticket">
+                </div>
+            </div>
+        </section>
+
+        <!-- Verified Booking Partners -->
+        <section class="booking-partners-section">
+            <div class="booking-section-heading">
+                <p class="section-kicker"
+                    style="color:var(--saffron);font-weight:800;font-size:11px;letter-spacing:.16em;">VERIFIED TICKETING
+                    PARTNERS</p>
+                <h2>Choose your preferred platform</h2>
+                <p>Select a partner below to check real-time availability, select your favorite seats, and grab early
+                    bird tickets.</p>
+            </div>
+
+            <div class="partners-grid">
+                <!-- BookMyShow -->
+                <article class="partner-card">
+                    <div>
+                        <span class="partner-badge">PAN-INDIA</span>
+                        <h3>🎟️ BookMyShow</h3>
+                        <p>India's largest entertainment ticketing platform covering 650+ cities with IMAX, 4DX, Dolby
+                            Atmos, and regional language releases.</p>
+                    </div>
+                    <a href="https://in.bookmyshow.com" target="_blank" rel="noopener noreferrer"
+                        class="partner-link-btn">
+                        <span>Book on BookMyShow</span>
+                        <span>→</span>
+                    </a>
+                </article>
+
+                <!-- District / Paytm Insider -->
+                <article class="partner-card">
+                    <div>
+                        <span class="partner-badge">CURATED</span>
+                        <h3>⚡ District by Zomato</h3>
+                        <p>Curated movie experiences, premiere screenings, film festivals, and multiplex showtimes
+                            across major metropolitan regions.</p>
+                    </div>
+                    <a href="https://www.district.in/movies/" target="_blank" rel="noopener noreferrer"
+                        class="partner-link-btn">
+                        <span>Book on District</span>
+                        <span>→</span>
+                    </a>
+                </article>
+
+                <!-- PVR INOX -->
+                <article class="partner-card">
+                    <div>
+                        <span class="partner-badge">PREMIUM</span>
+                        <h3>✨ PVR INOX Pass</h3>
+                        <p>Direct bookings for PVR & INOX multiplex chains, ICE Theatres, Director's Cut luxury
+                            recliners, and Insignia dining screens.</p>
+                    </div>
+                    <a href="https://www.pvrcinemas.com" target="_blank" rel="noopener noreferrer"
+                        class="partner-link-btn">
+                        <span>Book on PVR INOX</span>
+                        <span>→</span>
+                    </a>
+                </article>
+            </div>
+        </section>
+
+        <!-- Pre-Show Cinema Checklist -->
+        <section class="experience-guide-box">
+            <div class="guide-item">
+                <div class="guide-icon">📽️</div>
+                <h4>Pick the Ideal Format</h4>
+                <p>For high-octane mass spectacles and sci-fi (like <em>Salaar</em> or <em>Varanasi</em>), choose IMAX
+                    with Laser or 4DX for maximum impact.</p>
+            </div>
+            <div class="guide-item">
+                <div class="guide-icon">🔊</div>
+                <h4>Dolby Atmos Audio</h4>
+                <p>For rich biographical dramas and musicals (like <em>Mahanati</em> or <em>12th Fail</em>), Dolby Atmos
+                    delivers crystal-clear dialogue and subtle acoustics.</p>
+            </div>
+            <div class="guide-item">
+                <div class="guide-icon">💺</div>
+                <h4>The Sweet Spot Seat</h4>
+                <p>Book rows 2/3 of the way back in the center for an optimal field of view without head tilting and
+                    perfectly balanced stereo surround.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <div class="film-ticker">
+        <div class="ticker-track">
+            <span>Lights</span><b>✦</b><span>Camera</span><b>✦</b><span>Action</span><b>✦</b>
+            <span>Read the Review</span><b>✦</b><span>Find the Feeling</span><b>✦</b>
+            <span>Lights</span><b>✦</b><span>Camera</span><b>✦</b><span>Action</span><b>✦</b>
+        </div>
     </div>
+    <footer class="result-footer">MOVIESENSE · THE BOX OFFICE & TICKET HUB</footer>
+
+    <script>
+        // Navigation Menu Dropdown Toggle & Click-Outside Handler
+        const navMenuBtn = document.getElementById('navMenuBtn');
+        const navDropdown = document.getElementById('navDropdown');
+        if (navMenuBtn && navDropdown) {
+            function toggleNavMenu(show) {
+                const isExpanded = show !== undefined ? show : !navDropdown.classList.contains('show');
+                navDropdown.classList.toggle('show', isExpanded);
+                navMenuBtn.classList.toggle('active', isExpanded);
+            }
+            navMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleNavMenu(); });
+            document.addEventListener('click', (e) => { if (!navMenuBtn.contains(e.target) && !navDropdown.contains(e.target)) toggleNavMenu(false); });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleNavMenu(false); });
+        }
+
+        // Theme Toggle (Dark / Light Mode)
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        function applyTheme(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('moviesense-theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('moviesense-theme', 'light');
+            }
+        }
+        if (localStorage.getItem('moviesense-theme') === 'dark') {
+            applyTheme(true);
+        }
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                applyTheme(!document.body.classList.contains('dark-mode'));
+            });
+        }
+    </script>
 </body>
+
 </html>

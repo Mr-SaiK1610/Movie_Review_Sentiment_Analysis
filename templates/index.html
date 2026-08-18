@@ -1,149 +1,748 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ReelTalk — Movie Review Studio</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MovieSense — Indian Movie Review Sentiment</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=41">
 </head>
-<body class="dashboard-body">
-    <aside class="app-sidebar">
-        <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark">M</span><span>Movie Review</span></a>
-        <p class="sidebar-label">Your movie desk</p>
-        <nav class="side-nav" aria-label="Main navigation">
-            <a class="active" href="#overview">Overview</a>
-            <a href="#analyze">Analyze review</a>
-            <a href="{{ url_for('history') }}">History</a>
-            <a href="{{ url_for('analytics') }}">Sentiment analytics</a>
-            <a href="{{ url_for('booking') }}">Book tickets</a>
-        </nav>
-        <p class="sidebar-label">Explore</p>
-        <nav class="side-nav secondary-nav">
-            <a href="#watchlist">Watchlist</a>
-            <a href="#discover">Discover</a>
-            <a href="#how-it-works">How it works</a>
-        </nav>
-        <div class="sidebar-note">Analysis engine is ready</div>
-    </aside>
+<body>
+<div class="announcement-bar">Celebrating the magic of Indian cinema · Bollywood · Tollywood · Kollywood · Mollywood · Sandalwood</div>
 
-    <main class="dashboard-main">
-        <header class="topbar">
-            <div><p class="topbar-kicker">A THOUGHT FOR THE SCREEN</p><p class="topbar-title">“Every great film leaves you seeing the world a little differently.”</p></div>
-        </header>
-
-        <section class="welcome-panel" id="overview">
-            <div class="welcome-copy">
-                <p class="section-kicker">REELTALK PRESENTS</p>
-                <h1>Movie Review <em>Sentiment Analysis</em></h1>
-                <p class="hero-subheading">A clearer way to understand every reaction.</p>
-                <p>Write a review, discover its sentiment, and get useful perspective on what made the movie work — or not work — for you.</p>
-                <a class="primary-action" href="#analyze">Analyze a review <span>→</span></a>
+<header class="site-nav">
+  <div class="nav-inner">
+    <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark"><img src="{{ url_for('static', filename='images/moviesense-logo.jpg') }}" alt="MovieSense Logo" class="brand-logo-img"></span><span>Movie<span> Review<span> Sentiment<span> Analysis</span></span></a>
+    <div class="nav-right-group">
+      <nav class="nav-links">
+        <a class="active" href="{{ url_for('index') }}">Home</a>
+        <a href="#movies">Movies</a>
+        <a href="#experience" class="how-link">Experience</a>
+      </nav>
+      <button class="theme-toggle-btn" id="themeToggleBtn" aria-label="Toggle dark/light mode" type="button" title="Switch theme">
+        <span class="theme-toggle-icon theme-icon-sun" aria-hidden="true">☀️</span>
+        <span class="theme-toggle-icon theme-icon-moon" aria-hidden="true">🌙</span>
+      </button>
+      <div class="nav-menu-wrapper">
+        <button class="nav-menu-btn" id="navMenuBtn" aria-label="Toggle navigation menu" aria-expanded="false" type="button">
+          <span class="menu-icon-bars" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+          <span>Menu</span>
+        </button>
+        <div class="nav-dropdown" id="navDropdown" aria-hidden="true">
+          <div class="nav-dropdown-header">
+            <span>Quick Navigation</span>
+          </div>
+          <a href="{{ url_for('index') }}" class="nav-dropdown-item">
+            <span class="dropdown-item-icon">⌂</span>
+            <div class="dropdown-item-text">
+              <strong>Home</strong>
+              <small>Explore movies & reviews</small>
             </div>
-            <div class="hero-detail">
-                <img src="{{ url_for('static', filename='images/saiku.jpg') }}" alt="A dramatic movie studio illustration with cameras, lights, and film reels">
+          </a>
+          <a href="{{ url_for('analytics') }}" class="nav-dropdown-item">
+            <span class="dropdown-item-icon">◔</span>
+            <div class="dropdown-item-text">
+              <strong>Analytics</strong>
+              <small>Sentiment breakdown & stats</small>
             </div>
-        </section>
+          </a>
+          <a href="{{ url_for('history') }}" class="nav-dropdown-item">
+            <span class="dropdown-item-icon">◷</span>
+            <div class="dropdown-item-text">
+              <strong>History</strong>
+              <small>Past decoded reviews</small>
+            </div>
+          </a>
+          <a href="{{ url_for('index') }}#analyze" class="nav-dropdown-item nav-dropdown-analyze" id="dropdownAnalyzeLink">
+            <span class="dropdown-item-icon">＋</span>
+            <div class="dropdown-item-text">
+              <strong>New Analyze</strong>
+              <small>Decode a new movie review</small>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
 
-        <section class="quick-grid" aria-label="Project features">
-            <article><div><strong>Instant verdict</strong><p>Positive, neutral, or negative.</p></div></article>
-            <article><div><strong>Review insights</strong><p>Helpful next steps after analysis.</p></div></article>
-            <article><div><strong>Saved history</strong><p>Pick up where you left off.</p></div></article>
-        </section>
+<main>
+<section class="hero-cinema">
+  <div class="hero-content">
+    <div class="hero-copy">
+      <div class="hero-kicker"><span></span> AI FOR INDIAN CINEMA</div>
+      <h1 class="hero-title">Every movie has a <em>feeling.</em><br>Tell us yours.</h1>
+      <p class="hero-lede">Write a review for the movie you just watched and let MovieSense predict whether your feeling is <strong>Positive, Neutral or Negative.</strong></p>
 
-        <section class="home-gallery" aria-label="A few frames from cinema">
-            <div class="gallery-heading"><p class="section-kicker">A FEW FRAMES FROM CINEMA</p><h2>Stories live in the details.</h2></div>
-            <figure><img src="{{ url_for('static', filename='images/still-score.jpg') }}" alt="Musicians playing beneath a night sky"><figcaption>The score</figcaption></figure>
-            <figure><img src="{{ url_for('static', filename='images/still-mood.jpg') }}" alt="Cinematic harbour scene at dusk"><figcaption>The mood</figcaption></figure>
-            <figure><img src="{{ url_for('static', filename='images/still-ensemble.jpg') }}" alt="Illustrated ensemble of Bollywood characters"><figcaption>The ensemble</figcaption></figure>
-        </section>
+    </div>
 
-        <section class="workspace-grid">
-            <section class="analysis-panel" id="analyze">
-                <div class="panel-heading"><div><p class="section-kicker">ANALYZE REVIEW</p><h2>What did you think?</h2></div><span class="step-count">01 / 01</span></div>
-                <p class="panel-intro">Write naturally. A sentence is enough, but more detail gives the model more context.</p>
-                {% if error %}<div class="dashboard-error">{{ error }}</div>{% endif %}
-                <form action="{{ url_for('predict') }}" method="POST" id="reviewForm">
-                    <textarea name="review_text" id="review_text" maxlength="5000" required placeholder="Example: The performances were wonderful, but the second half felt too long.">{% if previous_text %}{{ previous_text }}{% endif %}</textarea>
-                    <div class="review-form-bottom"><span id="charCount">0 / 5000</span><div><button class="text-button" type="button" id="clearButton">Clear</button><button class="primary-action" type="submit">Analyze review <span>→</span></button></div></div>
-                </form>
-                <div class="sample-row"><span>Try one:</span><button type="button" data-review="positive">Loved it</button><button type="button" data-review="neutral">Mixed feelings</button><button type="button" data-review="negative">Not for me</button></div>
-            </section>
+    <div class="hero-posters fandeck-showcase" aria-label="Indian movie poster collection">
+      <div class="fandeck-aura"></div>
+      <div class="fandeck-card fandeck-card-1">
+        <img src="{{ url_for('static', filename='images/hero-baahubali-2.jpg') }}" alt="Baahubali 2: The Conclusion poster">
+      </div>
+      <div class="fandeck-card fandeck-card-2">
+        <img src="{{ url_for('static', filename='images/hero-kalki.jpg') }}" alt="Kalki 2898 AD poster">
+      </div>
+      <div class="fandeck-card fandeck-card-3 fandeck-card-center">
+        <img src="{{ url_for('static', filename='images/hero-rrr.jpg') }}" alt="RRR poster">
+      </div>
+      <div class="fandeck-card fandeck-card-4">
+        <img src="{{ url_for('static', filename='images/hero-kantara.jpg') }}" alt="Kantara: Chapter 1 poster">
+      </div>
+      <div class="fandeck-card fandeck-card-5">
+        <img src="{{ url_for('static', filename='images/hero-kgf-2.jpg') }}" alt="KGF: Chapter 2 poster">
+      </div>
+    </div>
+  </div>
+</section>
 
-            <aside class="now-showing" id="discover">
-                <div><p class="section-kicker">NOW SHOWING</p><h2>Your next good watch is out there.</h2><p>Browse current films and reserve a seat when you find one.</p><a href="{{ url_for('booking') }}">Book tickets</a></div>
-            </aside>
-        </section>
+<section class="analyzer-section" id="analyze">
+  <div class="container analyzer-wrap">
+    <section class="review-box">
+      <div class="review-box-head"><div><span class="live-dot"></span><h3>Movie Review Analyzer</h3></div></div>
+      <div class="dashboard-error" id="formError" style="{% if not error %}display:none;{% endif %}">{{ error if error else '' }}</div>
+      <label for="review_text">What did you think about the movie?</label>
+      <form action="{{ url_for('predict') }}" method="POST" id="reviewForm">
+        <div class="textarea-wrap"><textarea name="review_text" id="review_text" maxlength="5000" required placeholder="e.g. KGF gave me goosebumps from beginning to end...">{{ review_text if review_text else '' }}</textarea><button class="mic-button" type="button" id="micButton" title="Speak your review" aria-label="Speak your review">🎙️</button></div>
+        <div class="review-form-bottom">
+          <span id="charCount">0 / 5000</span>
+          <div class="form-actions"><button class="text-button" type="button" id="clearButton">Clear</button><button class="btn btn-saffron" type="submit" id="analyzeBtn">Analyze Review</button></div>
+        </div>
+      </form>
+      <div class="sample-row"><span>Try one:</span><button type="button" data-review="positive">Loved it</button><button type="button" data-review="neutral">Mixed feelings</button><button type="button" data-review="negative">Not for me</button></div>
+    </section>
+  </div>
+</section>
 
-        <section class="lower-grid">
-            <article class="watchlist-card" id="watchlist"><p class="section-kicker">YOUR WATCHLIST</p><h2>Keep a little room for great cinema.</h2><p>Save the films you want to revisit, recommend, or watch next.</p><button type="button" class="text-button">Create a watchlist</button></article>
-            <article class="method-card" id="how-it-works"><p class="section-kicker">BEHIND THE SCENES</p><h2>Simple, considered analysis.</h2><p>Your review is processed by a TF-IDF + Logistic Regression model trained to recognize positive, neutral, and negative movie opinions.</p></article>
-        </section>
-        <footer class="dashboard-footer">MOVIE REVIEW SENTIMENT ANALYSIS · A THOUGHTFUL MOVIE REVIEW SPACE</footer>
-    </main>
-    <script>
-        const textarea = document.getElementById('review_text');
-        const counter = document.getElementById('charCount');
-        const examples = {
-            positive: [
-                'The movie was fantastic. The acting was brilliant and the story stayed with me.',
-                'A beautifully made film with a touching story and excellent performances.',
-                'I loved every minute of this movie; it was funny, emotional, and memorable.',
-                'The direction was confident and the cinematography was stunning throughout.',
-                'The lead actors had wonderful chemistry and made every scene believable.',
-                'An engaging story with a satisfying ending. I would happily watch it again.',
-                'This was one of the best films I have seen this year.',
-                'The soundtrack, performances, and writing worked together perfectly.',
-                'A thoughtful and entertaining movie with characters I genuinely cared about.',
-                'The film exceeded my expectations and kept me interested from start to finish.',
-                'The emotional scenes were powerful without ever feeling forced.',
-                'A refreshing story with strong performances and beautiful visuals.',
-                'Every scene felt purposeful and the pacing was just right.',
-                'This movie had heart, humour, and a very memorable final act.',
-                'A wonderful watch that I would recommend to friends and family.'
-            ],
-            neutral: [
-                'The movie was released in 2024.',
-                'This film runs for approximately two hours.',
-                'The story follows a family during a summer vacation.',
-                'The movie is available with subtitles.',
-                'The main character travels to a new city.',
-                'The movie was neither great nor terrible.',
-                'The film was okay overall.',
-                'It was an average movie for me.',
-                'Some parts worked and some parts did not.',
-                'The acting was fine, but the story was ordinary.',
-                'The movie was not bad, but it was not special.',
-                'There were good scenes and weak scenes.',
-                'I do not have a strong opinion about this film.',
-                'The film had a balanced mix of strengths and weaknesses.',
-                'The movie had both interesting and slow moments.'
-            ],
-            negative: [
-                'The film was disappointing. The pacing was slow and the characters felt unfinished.',
-                'The story was predictable and the acting did not feel convincing.',
-                'I found the movie boring and much longer than it needed to be.',
-                'The dialogue was weak and several scenes felt unnecessary.',
-                'A disappointing watch with a confusing plot and little emotional impact.',
-                'The performances were flat and the direction lacked energy.',
-                'The movie started well but quickly became repetitive and dull.',
-                'The script had too many plot holes for me to enjoy the story.',
-                'The humour did not work, and the drama felt forced.',
-                'I could not connect with any of the characters in this film.',
-                'The film was boring and the story was disappointing.',
-                'The ending was rushed and did not resolve the main story properly.',
-                'This was a frustrating movie with poor pacing and weak writing.',
-                'The film had potential, but the execution was disappointing.',
-                'I would not recommend this movie because it felt unfinished and forgettable.'
-            ]
-        };
-        function updateCount(){ counter.textContent = `${textarea.value.length} / 5000`; }
-        textarea.addEventListener('input', updateCount);
-        document.getElementById('clearButton').addEventListener('click', () => { textarea.value = ''; updateCount(); textarea.focus(); });
-        document.querySelectorAll('[data-review]').forEach(button => button.addEventListener('click', () => { const choices = examples[button.dataset.review]; textarea.value = choices[Math.floor(Math.random() * choices.length)]; updateCount(); textarea.focus(); }));
-        updateCount();
-    </script>
+<section class="inline-result" id="result" {% if not label %}style="display: none;"{% endif %}>
+  <div class="container analyzer-wrap">
+    <div class="ai-verdict-card" id="aiVerdictCard">
+      <!-- Top header -->
+      <div class="ai-verdict-header">
+        <div>
+          <span class="ai-verdict-kicker">AI VERDICT</span>
+          <h2 class="ai-verdict-title">Your review decoded</h2>
+        </div>
+        <div class="ai-verdict-badge" id="aiVerdictModelTag">
+          <span class="ai-badge-dot"></span>
+          <span id="resultEngineShort">MovieSense AI</span>
+        </div>
+      </div>
+
+      <!-- Main Verdict Row -->
+      <div class="ai-verdict-main">
+        <!-- Left Circular Gauge -->
+        <div class="ai-gauge-container">
+          <div class="ai-gauge-ring gauge-{{ label|lower if label else 'positive' }}" id="resultGaugeRing" style="--confidence-pct: {{ confidence_pct if confidence_pct else 95.0 }};">
+            <div class="ai-gauge-inner">
+              <div class="ai-gauge-emoji" id="resultEmoji">{{ emoji if emoji else '😊' }}</div>
+              <div class="ai-gauge-value" id="resultConfidenceVal">{{ confidence_pct if confidence_pct else '95.0' }}%</div>
+              <div class="ai-gauge-label">confidence</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Signal & Probability Breakdown -->
+        <div class="ai-verdict-content">
+          <div class="ai-sentiment-pill pill-{{ label|lower if label else 'positive' }}" id="resultSentimentPill">
+            {{ label|upper if label else 'POSITIVE' }}
+          </div>
+          <h3 class="ai-verdict-headline" id="resultHeadline">
+            {{ headline if headline else 'The review carries a positive emotional signal.' }}
+          </h3>
+
+          <div class="ai-context-banner">
+            <span class="ai-context-tag">Processed for trained model</span>
+            <span class="ai-context-sep">•</span>
+            <span class="ai-context-text" id="resultCleanedPreview">{{ cleaned_preview if cleaned_preview else (review_text if review_text else '') }}</span>
+          </div>
+
+          <!-- Probability Breakdown -->
+          <div class="ai-prob-breakdown">
+            <div class="ai-prob-row">
+              <span class="ai-prob-name">Positive</span>
+              <div class="ai-prob-track">
+                <div class="ai-prob-fill fill-positive" id="barPositive" style="width: {{ positive_pct if positive_pct else 95.0 }}%;"></div>
+              </div>
+              <span class="ai-prob-num" id="valPositive">{{ positive_pct if positive_pct else '95.0' }}%</span>
+            </div>
+            <div class="ai-prob-row">
+              <span class="ai-prob-name">Negative</span>
+              <div class="ai-prob-track">
+                <div class="ai-prob-fill fill-negative" id="barNegative" style="width: {{ negative_pct if negative_pct else 5.0 }}%;"></div>
+              </div>
+              <span class="ai-prob-num" id="valNegative">{{ negative_pct if negative_pct else '5.0' }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Sub-Cards Row -->
+      <div class="ai-verdict-subcards">
+        <!-- Influential Words -->
+        <div class="ai-subcard influential-words-subcard">
+          <div class="ai-subcard-head">
+            <span class="ai-subcard-icon">🔍</span>
+            <h4>Influential words</h4>
+          </div>
+          <p class="ai-subcard-desc">Words that helped shape the prediction.</p>
+          <div class="ai-word-chips" id="resultWordChips">
+            {% if influential_words %}
+              {% for item in influential_words %}
+                <span class="ai-word-chip chip-{{ item.type }}">{{ item.label }}</span>
+              {% endfor %}
+            {% else %}
+              <span class="ai-word-chip chip-positive">+ impressive</span>
+              <span class="ai-word-chip chip-positive">+ good</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Review Insights -->
+        <div class="ai-subcard review-insights-subcard">
+          <div class="ai-subcard-head">
+            <span class="ai-subcard-icon">📊</span>
+            <h4>Review insights</h4>
+          </div>
+          <div class="ai-insights-grid">
+            <div class="ai-stat-tile">
+              <strong id="resultStatWords">{{ word_count if word_count else '0' }}</strong>
+              <span>Words</span>
+            </div>
+            <div class="ai-stat-tile">
+              <strong id="resultStatChars">{{ char_count if char_count else '0' }}</strong>
+              <span>Characters</span>
+            </div>
+            <div class="ai-stat-tile">
+              <strong id="resultStatSentences">{{ sentence_count if sentence_count else '1' }}</strong>
+              <span>Sentences</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Menu -->
+      <div class="ai-verdict-actions">
+        <form action="{{ url_for('download_report') }}" method="POST" id="downloadReportForm" style="display:inline-flex;margin:0;">
+          <input type="hidden" name="review_text" id="reportReviewText" value="{{ review_text if review_text else '' }}">
+          <input type="hidden" name="label" id="reportLabel" value="{{ label if label else '' }}">
+          <input type="hidden" name="engine" id="reportEngine" value="{{ engine if engine else '' }}">
+          <input type="hidden" name="word_count" id="reportWordCount" value="{{ word_count if word_count else '' }}">
+          <input type="hidden" name="confidence_strength" id="reportConfidenceStrength" value="{{ confidence_strength if confidence_strength else '' }}">
+          <input type="hidden" name="confidence_pct" id="reportConfidencePct" value="{{ confidence_pct if confidence_pct else '' }}">
+          <button type="submit" class="ai-action-btn ai-action-download">⬇ <span>Download Report</span></button>
+        </form>
+        <a href="#analyze" class="ai-action-btn ai-action-new" id="newAnalyzeBtn">＋ <span>New Analyze</span></a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="poster-world" id="movies">
+  <div class="container">
+    <div class="section-head centered-head">
+      <div><p class="section-kicker">EXPLORE INDIAN CINEMA</p><h2>Stories, characters & cinema.</h2></div>
+      <p>From big-screen spectacles to unforgettable stories, every film carries a feeling worth talking about.</p>
+    </div>
+    <div class="poster-rail">
+      <article class="movie-card" data-sample="A brutal, emotionally charged action drama driven by obsession, family conflict, and revenge. Its larger-than-life style and intense performances make it a gripping, high-energy experience.">
+        <div class="movie-card-media">
+          <span class="movie-card-lang">HINDI</span>
+          <img src="{{ url_for('static', filename='images/animal.jpg') }}" alt="Animal poster">
+        </div>
+        <div class="movie-card-info">
+          <strong class="movie-card-title">Animal</strong>
+          <span class="movie-card-meta">Action · Crime · Drama · 2023</span>
+          <p class="movie-card-vibe">Intense · Violent · Dark · Revenge</p>
+        </div>
+      </article>
+
+      <article class="movie-card" data-sample="A tightly woven family thriller where an ordinary man goes to extraordinary lengths to protect his loved ones. Smart twists, emotional stakes, and sustained suspense keep the story engaging.">
+        <div class="movie-card-media">
+          <span class="movie-card-lang">TELUGU</span>
+          <img src="{{ url_for('static', filename='images/drushyam.jpg') }}" alt="Drushyam poster">
+        </div>
+        <div class="movie-card-info">
+          <strong class="movie-card-title">Drushyam</strong>
+          <span class="movie-card-meta">Crime · Drama · Thriller · 2014</span>
+          <p class="movie-card-vibe">Suspense · Family · Mystery · Tension</p>
+        </div>
+      </article>
+
+      <article class="movie-card" data-sample="A massive-scale adventure promising mythology, action, and spectacular world-building. With its epic premise and ambitious visual scope, it has the feel of a major cinematic event.">
+        <div class="movie-card-media">
+          <span class="movie-card-lang">TELUGU</span>
+          <img src="{{ url_for('static', filename='images/varanasi.jpg') }}" alt="Varanasi poster">
+        </div>
+        <div class="movie-card-info">
+          <strong class="movie-card-title">Varanasi</strong>
+          <span class="movie-card-meta">Action · Adventure · Fantasy · 2027</span>
+          <p class="movie-card-vibe">Epic · Mythical · Grandeur · Spectacle</p>
+        </div>
+      </article>
+
+      <article class="movie-card" data-sample="A deeply inspiring story about failure, persistence, and starting over. Grounded performances and an honest portrayal of struggle make this an uplifting film about refusing to give up.">
+        <div class="movie-card-media">
+          <span class="movie-card-lang">HINDI</span>
+          <img src="{{ url_for('static', filename='images/12th-fail.jpg') }}" alt="12th Fail poster">
+        </div>
+        <div class="movie-card-info">
+          <strong class="movie-card-title">12th Fail</strong>
+          <span class="movie-card-meta">Biography · Drama · 2023</span>
+          <p class="movie-card-vibe">Inspirational · Hopeful · Determined · Emotional</p>
+        </div>
+      </article>
+
+      <article class="movie-card" data-sample="A powerful sports drama about ambition, discipline, family, and breaking expectations. The emotional father-daughter journey and gripping wrestling sequences make it both inspiring and deeply moving.">
+        <div class="movie-card-media">
+          <span class="movie-card-lang">HINDI</span>
+          <img src="{{ url_for('static', filename='images/dangal.jpg') }}" alt="Dangal poster">
+        </div>
+        <div class="movie-card-info">
+          <strong class="movie-card-title">Dangal</strong>
+          <span class="movie-card-meta">Biography · Drama · Sports · 2016</span>
+          <p class="movie-card-vibe">Inspirational · Emotional · Powerful · Triumphant</p>
+        </div>
+      </article>
+
+      <article class="movie-card" data-sample="A thunderous action spectacle built around loyalty, friendship, betrayal, and power. Its huge set pieces, dark atmosphere, intense performances, and larger-than-life presentation deliver a full-scale mass-cinema experience.">
+        <div class="movie-card-media">
+          <span class="movie-card-lang">TELUGU</span>
+          <img src="{{ url_for('static', filename='images/salaar.jpg') }}" alt="Salaar poster">
+        </div>
+        <div class="movie-card-info">
+          <strong class="movie-card-title">Salaar: Part 1 – Ceasefire</strong>
+          <span class="movie-card-meta">Action · Thriller · Drama · 2023</span>
+          <p class="movie-card-vibe">Mass · Explosive · Dark · Epic</p>
+        </div>
+      </article>
+
+      <article class="movie-card" data-sample="A beautifully crafted biographical drama that celebrates a legendary actress while portraying the highs and lows of fame, love, and personal struggle. Rich performances, period detail, and emotional storytelling make it a memorable cinematic experience.">
+        <div class="movie-card-media">
+          <span class="movie-card-lang">TELUGU</span>
+          <img src="{{ url_for('static', filename='images/mahanati.jpg') }}" alt="Mahanati poster">
+        </div>
+        <div class="movie-card-info">
+          <strong class="movie-card-title">Mahanati</strong>
+          <span class="movie-card-meta">Biography · Drama · 2018</span>
+          <p class="movie-card-vibe">Emotional · Nostalgic · Glamorous · Tragic</p>
+        </div>
+      </article>
+
+      <article class="movie-card" data-sample="A deeply emotional sports drama about second chances, self-belief, and a father’s determination to make his son proud. Its heartfelt storytelling and powerful performances make the cricket journey feel personal and inspiring.">
+        <div class="movie-card-media">
+          <span class="movie-card-lang">TELUGU</span>
+          <img src="{{ url_for('static', filename='images/jersey.jpg') }}" alt="Jersey poster">
+        </div>
+        <div class="movie-card-info">
+          <strong class="movie-card-title">Jersey</strong>
+          <span class="movie-card-meta">Sports · Drama · 2019</span>
+          <p class="movie-card-vibe">Inspirational · Emotional · Redemption · Father-Son</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="cinema-features" id="experience">
+  <div class="container">
+    <div class="how-it-works-heading">
+      <p class="section-kicker">THE MOVIESENSE EXPERIENCE</p>
+      <h2>From Audience Words to Cinema Emotion.</h2>
+      <p>Capturing the heart, mood, and feeling behind every review.</p>
+    </div>
+    <div class="feature-grid">
+      <article><div class="feature-icon icon-story">🎬</div><span>01 · STORY</span><h3>Every review tells a story.</h3><p>MovieSense turns natural movie opinions into a simple sentiment verdict.</p></article>
+      <article><div class="feature-icon icon-feeling">🍿</div><span>02 · FEELING</span><h3>Every feeling counts.</h3><p>Positive, Neutral or Negative — understand the mood behind the words.</p></article>
+      <article><div class="feature-icon icon-insight">📽️</div><span>03 · INSIGHT</span><h3>Simple AI. Clear insight.</h3><p>Explore history and analytics after analysing your favourite movie reviews.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="section lower-section">
+  <div class="container two-col">
+    <article class="editorial-card light-editorial"><img src="{{ url_for('static', filename='images/saik.jpg') }}" alt="Cinema camera and film reel"><div class="editorial-content"><p class="section-kicker">BEHIND THE SCENES</p><h2>Lights. Camera.<br>Insight.</h2><p>Our NLP pipeline transforms your review into a clear sentiment prediction.</p></div></article>
+    <article class="editorial-card light-editorial"><img src="{{ url_for('static', filename='images/ticket-admit-one.jpg') }}" alt="Movie ticket illustration"><div class="editorial-content"><p class="section-kicker">KEEP EXPLORING</p><h2>Great movies<br>start conversations.</h2><p>Analyse another review, compare your history, or inspect sentiment analytics.</p><a class="btn btn-saffron" href="{{ url_for('history') }}">View History</a></div></article>
+  </div>
+</section>
+</main>
+
+<div class="film-ticker"><div class="ticker-track"><span>Lights</span><b>✦</b><span>Camera</span><b>✦</b><span>Action</span><b>✦</b><span>Read the Review</span><b>✦</b><span>Find the Feeling</span><b>✦</b><span>Lights</span><b>✦</b><span>Camera</span><b>✦</b><span>Action</span><b>✦</b></div></div>
+<footer class="result-footer">MOVIESENSE · AI FOR INDIAN CINEMA · LIGHTS · CAMERA · INSIGHT</footer>
+
+<script>
+const textarea = document.getElementById('review_text');
+const counter = document.getElementById('charCount');
+const micButton = document.getElementById('micButton');
+const reviewForm = document.getElementById('reviewForm');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const formError = document.getElementById('formError');
+const resultSection = document.getElementById('result');
+
+const examples = {
+  positive: [
+    'The movie was fantastic. The acting was brilliant and the story stayed with me.',
+    'A beautifully made film with a touching story and excellent performances.'
+  ],
+  neutral: [
+    'The movie had some great scenes, but the pacing was uneven and the ending felt average.',
+    'The acting was good, although the story was predictable and the overall experience was mixed.'
+  ],
+  negative: [
+    'The movie was boring and the story dragged for too long.',
+    'Weak writing and disappointing performances made this difficult to enjoy.'
+  ]
+};
+
+function updateCount() {
+  if (textarea && counter) {
+    counter.textContent = textarea.value.length + ' / 5000';
+  }
+}
+
+if (textarea) {
+  textarea.addEventListener('input', () => {
+    updateCount();
+    if (formError) formError.style.display = 'none';
+  });
+  updateCount();
+
+  document.querySelectorAll('.sample-row button').forEach(b => {
+    b.addEventListener('click', () => {
+      const a = examples[b.dataset.review];
+      textarea.value = a[Math.floor(Math.random() * a.length)];
+      textarea.focus();
+      updateCount();
+      if (formError) formError.style.display = 'none';
+    });
+  });
+
+  const clearBtn = document.getElementById('clearButton');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      textarea.value = '';
+      updateCount();
+      if (formError) formError.style.display = 'none';
+      textarea.focus();
+    });
+  }
+}
+
+// Seamless Same-Page Analysis (AJAX)
+if (reviewForm) {
+  reviewForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const text = textarea ? textarea.value.trim() : '';
+    if (!text) {
+      if (formError) {
+        formError.textContent = 'Please write a review before analyzing.';
+        formError.style.display = 'block';
+      }
+      if (textarea) textarea.focus();
+      return;
+    }
+
+    if (formError) formError.style.display = 'none';
+
+    const originalBtnHTML = analyzeBtn.innerHTML;
+    analyzeBtn.disabled = true;
+    analyzeBtn.innerHTML = '<span class="btn-spinner"></span> Analyzing Feeling...';
+
+    try {
+      const formData = new FormData(reviewForm);
+      const response = await fetch("{{ url_for('predict') }}", {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to analyze review. Please try again.');
+      }
+
+      // Update Gauge & Confidence
+      const gaugeRing = document.getElementById('resultGaugeRing');
+      if (gaugeRing) {
+        gaugeRing.className = `ai-gauge-ring gauge-${data.label.toLowerCase()}`;
+        gaugeRing.style.setProperty('--confidence-pct', data.confidence_pct);
+      }
+
+      const emojiElem = document.getElementById('resultEmoji');
+      if (emojiElem) emojiElem.textContent = data.emoji || (data.label === 'Positive' ? '😊' : (data.label === 'Negative' ? '🙁' : '😐'));
+
+      const confVal = document.getElementById('resultConfidenceVal');
+      if (confVal) confVal.textContent = `${data.confidence_pct}%`;
+
+      // Update Pill & Headline
+      const pill = document.getElementById('resultSentimentPill');
+      if (pill) {
+        pill.className = `ai-sentiment-pill pill-${data.label.toLowerCase()}`;
+        pill.textContent = data.label.toUpperCase();
+      }
+
+      const headline = document.getElementById('resultHeadline');
+      if (headline) headline.textContent = data.headline;
+
+      const preview = document.getElementById('resultCleanedPreview');
+      if (preview) preview.textContent = data.cleaned_preview || data.review_text;
+
+      // Update Probability Bars
+      const barPos = document.getElementById('barPositive');
+      const valPos = document.getElementById('valPositive');
+      if (barPos) barPos.style.width = `${data.positive_pct}%`;
+      if (valPos) valPos.textContent = `${data.positive_pct}%`;
+
+      const barNeg = document.getElementById('barNegative');
+      const valNeg = document.getElementById('valNegative');
+      if (barNeg) barNeg.style.width = `${data.negative_pct}%`;
+      if (valNeg) valNeg.textContent = `${data.negative_pct}%`;
+
+      // Update Influential Words Chips
+      const wordsContainer = document.getElementById('resultWordChips');
+      if (wordsContainer) {
+        wordsContainer.innerHTML = '';
+        if (data.influential_words && data.influential_words.length) {
+          data.influential_words.forEach(item => {
+            const chip = document.createElement('span');
+            chip.className = `ai-word-chip chip-${item.type}`;
+            chip.textContent = item.label;
+            wordsContainer.appendChild(chip);
+          });
+        } else {
+          const chip = document.createElement('span');
+          chip.className = 'ai-word-chip chip-neutral';
+          chip.textContent = '• overall tone';
+          wordsContainer.appendChild(chip);
+        }
+      }
+
+      // Update Stats
+      const statWords = document.getElementById('resultStatWords');
+      if (statWords) statWords.textContent = data.word_count;
+      const statChars = document.getElementById('resultStatChars');
+      if (statChars) statChars.textContent = data.char_count;
+      const statSentences = document.getElementById('resultStatSentences');
+      if (statSentences) statSentences.textContent = data.sentence_count;
+
+      // Update Suggestions Action Links
+      const actionSugg = document.getElementById('resultActionSuggestions');
+      if (data.suggestions_url && actionSugg) {
+        actionSugg.href = data.suggestions_url;
+        actionSugg.style.display = '';
+      } else if (actionSugg) {
+        actionSugg.style.display = 'none';
+      }
+
+      // Update hidden inputs for download report
+      const repReview = document.getElementById('reportReviewText');
+      if (repReview) repReview.value = data.review_text;
+      const repLabel = document.getElementById('reportLabel');
+      if (repLabel) repLabel.value = data.label;
+      const repEngine = document.getElementById('reportEngine');
+      if (repEngine) repEngine.value = data.engine;
+      const repWordCount = document.getElementById('reportWordCount');
+      if (repWordCount) repWordCount.value = data.word_count;
+      const repConfStrength = document.getElementById('reportConfidenceStrength');
+      if (repConfStrength) repConfStrength.value = data.confidence_strength;
+      const repConfPct = document.getElementById('reportConfidencePct');
+      if (repConfPct) repConfPct.value = data.confidence_pct;
+
+      // Reveal Result Section on the same page with smooth scroll
+      if (resultSection) {
+        resultSection.style.display = 'block';
+        resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+    } catch (err) {
+      if (formError) {
+        formError.textContent = err.message || 'An error occurred during analysis.';
+        formError.style.display = 'block';
+      }
+    } finally {
+      analyzeBtn.disabled = false;
+      analyzeBtn.innerHTML = originalBtnHTML;
+    }
+  });
+}
+
+// New Analyze Handler - Smoothly scroll back to analyzer
+function handleNewAnalyze(e) {
+  if (e) e.preventDefault();
+  const analyzeSection = document.getElementById('analyze');
+  if (analyzeSection) {
+    analyzeSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  if (textarea) {
+    setTimeout(() => {
+      textarea.focus();
+      textarea.select();
+    }, 300);
+  }
+}
+
+const newAnalyzeBtn = document.getElementById('newAnalyzeBtn');
+if (newAnalyzeBtn) newAnalyzeBtn.addEventListener('click', handleNewAnalyze);
+
+const bottomNewAnalyze = document.querySelector('.bottom-new-analyze');
+if (bottomNewAnalyze) bottomNewAnalyze.addEventListener('click', handleNewAnalyze);
+
+// Voice-to-text review input (supported in Chrome/Edge)
+let recognition = null, listening = false;
+if (micButton && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.lang = 'en-IN';
+
+  recognition.onstart = () => {
+    listening = true;
+    micButton.classList.add('recording');
+    micButton.textContent = '⏹️';
+    micButton.title = 'Stop recording';
+  };
+  recognition.onresult = (event) => {
+    let text = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      text += event.results[i][0].transcript;
+    }
+    if (event.results[event.results.length - 1].isFinal) {
+      textarea.value += (textarea.value ? ' ' : '') + text.trim();
+      updateCount();
+      if (formError) formError.style.display = 'none';
+    }
+  };
+  recognition.onerror = () => {
+    listening = false;
+    micButton.classList.remove('recording');
+    micButton.textContent = '🎙️';
+  };
+  recognition.onend = () => {
+    listening = false;
+    micButton.classList.remove('recording');
+    micButton.textContent = '🎙️';
+    micButton.title = 'Speak your review';
+  };
+  micButton.addEventListener('click', () => {
+    if (listening) {
+      recognition.stop();
+    } else {
+      recognition.lang = 'en-IN';
+      recognition.start();
+    }
+  });
+} else if (micButton) {
+  micButton.title = 'Voice input is not supported in this browser';
+  micButton.addEventListener('click', () => alert('Voice input is supported in Chrome and Edge. Please use one of those browsers.'));
+}
+
+// Keep the Experience navigation intentional and visible
+const howLink = document.querySelector('.how-link');
+if (howLink) {
+  howLink.addEventListener('click', e => {
+    e.preventDefault();
+    const expEl = document.getElementById('experience') || document.getElementById('how-it-works');
+    expEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+// Interactive Click-to-Analyze for Movie Cards
+document.querySelectorAll('.movie-card[data-sample]').forEach(card => {
+  card.addEventListener('click', () => {
+    const sample = card.getAttribute('data-sample');
+    if (sample && textarea) {
+      textarea.value = sample;
+      updateCount();
+      if (formError) formError.style.display = 'none';
+      document.getElementById('analyze')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => textarea.focus(), 350);
+    }
+  });
+});
+
+// Navigation Menu Dropdown Toggle & Click-Outside Handler
+const navMenuBtn = document.getElementById('navMenuBtn');
+const navDropdown = document.getElementById('navDropdown');
+const dropdownAnalyzeLink = document.getElementById('dropdownAnalyzeLink');
+
+if (navMenuBtn && navDropdown) {
+  function toggleNavMenu(show) {
+    const isExpanded = show !== undefined ? show : !navDropdown.classList.contains('show');
+    navDropdown.classList.toggle('show', isExpanded);
+    navMenuBtn.classList.toggle('active', isExpanded);
+    navMenuBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+    navDropdown.setAttribute('aria-hidden', isExpanded ? 'false' : 'true');
+  }
+
+  navMenuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleNavMenu();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!navMenuBtn.contains(e.target) && !navDropdown.contains(e.target)) {
+      toggleNavMenu(false);
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      toggleNavMenu(false);
+    }
+  });
+
+  if (dropdownAnalyzeLink) {
+    dropdownAnalyzeLink.addEventListener('click', (e) => {
+      toggleNavMenu(false);
+      const analyzeSection = document.getElementById('analyze');
+      if (analyzeSection) {
+        e.preventDefault();
+        analyzeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => textarea?.focus(), 350);
+      }
+    });
+  }
+}
+
+// Theme Toggle (Dark / Light Mode)
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+function applyTheme(isDark) {
+  if (isDark) {
+    document.body.classList.add('dark-mode');
+    localStorage.setItem('moviesense-theme', 'dark');
+  } else {
+    document.body.classList.remove('dark-mode');
+    localStorage.setItem('moviesense-theme', 'light');
+  }
+}
+
+if (localStorage.getItem('moviesense-theme') === 'dark') {
+  applyTheme(true);
+} else {
+  applyTheme(false);
+}
+
+if (themeToggleBtn) {
+  themeToggleBtn.addEventListener('click', () => {
+    const isDark = document.body.classList.contains('dark-mode');
+    applyTheme(!isDark);
+  });
+}
+
+if (resultSection && resultSection.style.display !== 'none' && !resultSection.hasAttribute('hidden')) {
+  setTimeout(() => resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+}
+</script>
 </body>
 </html>

@@ -34,19 +34,6 @@ def find_dataset():
 
     raise FileNotFoundError("IMDB dataset CSV file was not found.")
 
-NEGATION_WORDS = frozenset(
-    {"no", "nor", "not", "never", "neither", "none", "nothing", "without"}
-)
-
-
-def find_dataset():
-    for filename in ["IMDB Dataset.csv", "IMDB_Dataset.csv"]:
-        path = os.path.join(BASE_DIR, filename)
-        if os.path.exists(path):
-            return path
-
-    raise FileNotFoundError("IMDB dataset CSV file was not found.")
-
 
 def clean_text(text: str) -> str:
     """Must match preprocessing in app.py and train_sentiment.py."""
@@ -74,6 +61,7 @@ def clean_text(text: str) -> str:
 
 
 def main():
+    print("Loading test datasets...")
     imdb_df = pd.read_csv(find_dataset())[["review", "sentiment"]]
     neutral_df = pd.read_csv(NEUTRAL_DATA_PATH)[["review", "sentiment"]]
     df = pd.concat([imdb_df, neutral_df], ignore_index=True)
@@ -88,20 +76,29 @@ def main():
         stratify=df["label"],
     )
 
+    print("Loading model and vectorizer...")
     vectorizer = joblib.load(VECTORIZER_PATH)
     model = joblib.load(MODEL_PATH)
+    if not hasattr(model, "multi_class"):
+        model.multi_class = "auto"
 
+    print("Generating predictions on test split...")
     y_pred = model.predict(vectorizer.transform(X_test))
     cm = confusion_matrix(y_test, y_pred)
 
     labels = ["negative", "neutral", "positive"]
+    accuracy = round(accuracy_score(y_test, y_pred), 4)
+    f1_weighted = round(f1_score(y_test, y_pred, average="weighted"), 4)
+    precision_weighted = round(precision_score(y_test, y_pred, average="weighted"), 4)
+    recall_weighted = round(recall_score(y_test, y_pred, average="weighted"), 4)
+
     metrics = {
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "model": "Logistic Regression (Negation-aware TF-IDF)",
-        "accuracy": round(accuracy_score(y_test, y_pred), 4),
-        "precision_weighted": round(precision_score(y_test, y_pred, average="weighted"), 4),
-        "recall_weighted": round(recall_score(y_test, y_pred, average="weighted"), 4),
-        "f1_score_weighted": round(f1_score(y_test, y_pred, average="weighted"), 4),
+        "accuracy": accuracy,
+        "precision_weighted": precision_weighted,
+        "recall_weighted": recall_weighted,
+        "f1_score_weighted": f1_weighted,
         "confusion_matrix": {
             "labels": labels,
             "matrix": cm.tolist(),
@@ -112,8 +109,12 @@ def main():
     with open(OUTPUT_PATH, "w", encoding="utf-8") as file:
         json.dump(metrics, file, indent=2)
 
-    print(f"Accuracy: {metrics['accuracy']:.4f}")
-    print(f"Weighted F1 score: {metrics['f1_score_weighted']:.4f}")
+    print("-" * 50)
+    print(f"Accuracy: {accuracy * 100:.2f}% ({accuracy})")
+    print(f"Weighted F1 Score: {f1_weighted * 100:.2f}% ({f1_weighted})")
+    print(f"Weighted Precision: {precision_weighted * 100:.2f}% ({precision_weighted})")
+    print(f"Weighted Recall: {recall_weighted * 100:.2f}% ({recall_weighted})")
+    print("-" * 50)
 
 
 if __name__ == "__main__":

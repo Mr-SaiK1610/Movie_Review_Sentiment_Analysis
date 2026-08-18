@@ -1,55 +1,65 @@
 {
-  "generated_at": "2026-08-17T11:34:01",
+  "generated_at": "2026-08-18T11:36:20",
   "model": "Logistic Regression (Negation-aware TF-IDF)",
-  "accuracy": 0.9466,
-  "precision": 0.9401,
-  "recall": 0.954,
-  "f1_score": 0.947,
+  "accuracy": 0.9508,
+  "precision_weighted": 0.9509,
+  "recall_weighted": 0.9508,
+  "f1_score_weighted": 0.9508,
   "confusion_matrix": {
     "labels": [
       "negative",
+      "neutral",
       "positive"
     ],
     "matrix": [
       [
-        4696,
-        304
+        4719,
+        0,
+        281
       ],
       [
-        230,
-        4770
+        0,
+        10,
+        0
+      ],
+      [
+        211,
+        0,
+        4789
       ]
-    ],
-    "true_negative": 4696,
-    "false_positive": 304,
-    "false_negative": 230,
-    "true_positive": 4770
+    ]
   },
   "classification_report": {
     "negative": {
-      "precision": 0.9533089727974016,
-      "recall": 0.9392,
-      "f1-score": 0.9462018940157163,
+      "precision": 0.9572008113590263,
+      "recall": 0.9438,
+      "f1-score": 0.950453172205438,
       "support": 5000.0
+    },
+    "neutral": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 10.0
     },
     "positive": {
-      "precision": 0.9400867165944028,
-      "recall": 0.954,
-      "f1-score": 0.9469922572960096,
+      "precision": 0.9445759368836292,
+      "recall": 0.9578,
+      "f1-score": 0.9511420059582919,
       "support": 5000.0
     },
-    "accuracy": 0.9466,
+    "accuracy": 0.9508491508491509,
     "macro avg": {
-      "precision": 0.9466978446959022,
-      "recall": 0.9466,
-      "f1-score": 0.9465970756558629,
-      "support": 10000.0
+      "precision": 0.9672589160808852,
+      "recall": 0.9672000000000001,
+      "f1-score": 0.9671983927212433,
+      "support": 10010.0
     },
     "weighted avg": {
-      "precision": 0.9466978446959023,
-      "recall": 0.9466,
-      "f1-score": 0.9465970756558628,
-      "support": 10000.0
+      "precision": 0.9509374366846431,
+      "recall": 0.9508491508491509,
+      "f1-score": 0.9508467423395254,
+      "support": 10010.0
     }
   }
 }
